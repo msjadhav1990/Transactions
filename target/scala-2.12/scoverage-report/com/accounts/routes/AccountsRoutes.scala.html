@@ -1,0 +1,3378 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          com\accounts\routes\AccountsRoutes.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package com.accounts.routes
+</span>2 <span style=''>
+</span>3 <span style=''>import akka.actor.ActorRef
+</span>4 <span style=''>import akka.http.scaladsl.model.MediaTypes.`application/json`
+</span>5 <span style=''>import akka.http.scaladsl.model.{HttpEntity, HttpResponse, StatusCode, StatusCodes}
+</span>6 <span style=''>import akka.http.scaladsl.server.Directives._
+</span>7 <span style=''>import akka.http.scaladsl.server.directives.LogEntry
+</span>8 <span style=''>import akka.http.scaladsl.server.{ExceptionHandler, Route, RouteResult}
+</span>9 <span style=''>import akka.pattern.ask
+</span>10 <span style=''>import akka.stream.ActorMaterializer
+</span>11 <span style=''>import akka.util.Timeout
+</span>12 <span style=''>import com.accounts.common.JsonResponse
+</span>13 <span style=''>import com.accounts.domain.{GenericHttpResponse, GetAccountDetailsRequest, TransactionRequest}
+</span>14 <span style=''>import com.accounts.marshallers.AccountsMarshaller._
+</span>15 <span style=''>import com.accounts.marshallers.Json4sMarshaller._
+</span>16 <span style=''>
+</span>17 <span style=''>import scala.concurrent.ExecutionContext
+</span>18 <span style=''>import scala.concurrent.duration._
+</span>19 <span style=''>
+</span>20 <span style=''>case class AccountsRoutes(routingActor: ActorRef)(implicit ec:ExecutionContext ) {
+</span>21 <span style=''>  def exceptionHandler: ExceptionHandler = </span><span style='background: #AEF1AE'>ExceptionHandler {
+</span>22 <span style=''></span><span style='background: #AEF1AE'>    case t: Exception =&gt;
+</span>23 <span style=''></span><span style='background: #AEF1AE'>      </span><span style='background: #F0ADAD'>t.printStackTrace()</span><span style='background: #AEF1AE'>
+</span>24 <span style=''></span><span style='background: #AEF1AE'>      </span><span style='background: #F0ADAD'>extractUri { uri =&gt;
+</span>25 <span style=''></span><span style='background: #F0ADAD'>        complete(HttpResponse(StatusCodes.InternalServerError, entity = &quot;Error &quot; + t.getMessage))
+</span>26 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style='background: #AEF1AE'>
+</span>27 <span style=''></span><span style='background: #AEF1AE'>  }</span><span style=''>
+</span>28 <span style=''>
+</span>29 <span style=''>  implicit val timeout: Timeout  = </span><span style='background: #AEF1AE'>Timeout(6000 milliseconds)</span><span style=''>
+</span>30 <span style=''>  def routes(implicit mat: ActorMaterializer): Route = {
+</span>31 <span style=''>    </span><span style='background: #AEF1AE'>AccountsOperationRoute.route(routingActor)</span><span style=''>
+</span>32 <span style=''>  }
+</span>33 <span style=''>
+</span>34 <span style=''>  def apiRoutes(implicit mat: ActorMaterializer): Route =
+</span>35 <span style=''>    </span><span style='background: #AEF1AE'>handleExceptions(exceptionHandler) {
+</span>36 <span style=''></span><span style='background: #AEF1AE'>      logAccess{
+</span>37 <span style=''></span><span style='background: #AEF1AE'>        routes
+</span>38 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>39 <span style=''></span><span style='background: #AEF1AE'>
+</span>40 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>41 <span style=''>
+</span>42 <span style=''>  def logAccess(innerRoute: Route): Route = {
+</span>43 <span style=''>    def toLogEntry(marker: String, f: Any =&gt; String) = (r: Any) =&gt; </span><span style='background: #AEF1AE'>LogEntry(marker + f(r), akka.event.Logging.InfoLevel)</span><span style=''>
+</span>44 <span style=''>    </span><span style='background: #AEF1AE'>extractRequest { request =&gt;
+</span>45 <span style=''></span><span style='background: #AEF1AE'>      logResult(toLogEntry(s&quot;${request.method.name} ${request.uri} ==&gt; &quot;, {
+</span>46 <span style=''></span><span style='background: #AEF1AE'>        case c: RouteResult.Complete =&gt; c.response.status.toString()
+</span>47 <span style=''></span><span style='background: #AEF1AE'>        case x                       =&gt; s&quot;unknown response part of type ${x.getClass}&quot;
+</span>48 <span style=''></span><span style='background: #AEF1AE'>      }))(innerRoute)
+</span>49 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>50 <span style=''>  }
+</span>51 <span style=''>}
+</span>52 <span style=''>
+</span>53 <span style=''>
+</span>54 <span style=''>
+</span>55 <span style=''>object AccountsOperationRoute{
+</span>56 <span style=''>  def route(rootActor: ActorRef)(implicit timeout: Timeout): Route =  </span><span style='background: #AEF1AE'>pathPrefix(&quot;app&quot; / &quot;accounts&quot;/&quot;transactions&quot;) {
+</span>57 <span style=''></span><span style='background: #AEF1AE'>
+</span>58 <span style=''></span><span style='background: #AEF1AE'>    get {
+</span>59 <span style=''></span><span style='background: #AEF1AE'>      path(LongNumber){ custId=&gt;
+</span>60 <span style=''></span><span style='background: #AEF1AE'>
+</span>61 <span style=''></span><span style='background: #AEF1AE'>        val getAccountsMessage= GetAccountDetailsRequest(custId)
+</span>62 <span style=''></span><span style='background: #AEF1AE'>        val genericHttpResponse= rootActor ? getAccountsMessage
+</span>63 <span style=''></span><span style='background: #AEF1AE'>         onSuccess(genericHttpResponse) {
+</span>64 <span style=''></span><span style='background: #AEF1AE'>           case GenericHttpResponse(StatusCodes.OK, t: JsonResponse) =&gt;  {
+</span>65 <span style=''></span><span style='background: #AEF1AE'>             </span><span style='background: #F0ADAD'>complete(HttpEntity(`application/json`, t.toJson))</span><span style='background: #AEF1AE'> }
+</span>66 <span style=''></span><span style='background: #AEF1AE'>           case GenericHttpResponse(x: StatusCode, msg: String) =&gt; { complete(HttpResponse(status = x, entity = HttpEntity(`application/json`, msg)))  }
+</span>67 <span style=''></span><span style='background: #AEF1AE'>           case p =&gt; {
+</span>68 <span style=''></span><span style='background: #AEF1AE'>             println(p)
+</span>69 <span style=''></span><span style='background: #AEF1AE'>             complete(StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;) }
+</span>70 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>71 <span style=''></span><span style='background: #AEF1AE'>
+</span>72 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>73 <span style=''></span><span style='background: #AEF1AE'>
+</span>74 <span style=''></span><span style='background: #AEF1AE'>    } ~
+</span>75 <span style=''></span><span style='background: #AEF1AE'>      post {
+</span>76 <span style=''></span><span style='background: #AEF1AE'>        pathEnd {
+</span>77 <span style=''></span><span style='background: #AEF1AE'>          entity(as[TransactionRequest]) { c =&gt;
+</span>78 <span style=''></span><span style='background: #AEF1AE'>            val genericHttpResponse= rootActor ? c
+</span>79 <span style=''></span><span style='background: #AEF1AE'>            onSuccess(genericHttpResponse) {
+</span>80 <span style=''></span><span style='background: #AEF1AE'>              case GenericHttpResponse(StatusCodes.OK, t: JsonResponse) =&gt;  {
+</span>81 <span style=''></span><span style='background: #AEF1AE'>                </span><span style='background: #F0ADAD'>complete(HttpEntity(`application/json`, t.toJson))</span><span style='background: #AEF1AE'> }
+</span>82 <span style=''></span><span style='background: #AEF1AE'>              case GenericHttpResponse(x: StatusCode, msg: String) =&gt; { complete(HttpResponse(status = x, entity = HttpEntity(`application/json`, msg)))  }
+</span>83 <span style=''></span><span style='background: #AEF1AE'>              case p =&gt; {
+</span>84 <span style=''></span><span style='background: #AEF1AE'>                println(p)
+</span>85 <span style=''></span><span style='background: #AEF1AE'>                complete(StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;) }
+</span>86 <span style=''></span><span style='background: #AEF1AE'>            }
+</span>87 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>88 <span style=''></span><span style='background: #AEF1AE'>        }
+</span>89 <span style=''></span><span style='background: #AEF1AE'>      } ~
+</span>90 <span style=''></span><span style='background: #AEF1AE'>      complete(</span><span style='background: #F0ADAD'>StatusCodes.MethodNotAllowed</span><span style='background: #AEF1AE'>)
+</span>91 <span style=''></span><span style='background: #AEF1AE'>  }</span><span style=''>
+</span>92 <span style=''>
+</span>93 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          145
+        </td>
+        <td>
+          922
+          -
+          1133
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.ExceptionHandler.apply
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.ExceptionHandler.apply(({
+  @SerialVersionUID(value = 0) final &lt;synthetic&gt; class $anonfun extends scala.runtime.AbstractPartialFunction[Throwable,akka.http.scaladsl.server.Route] with Serializable {
+    def &lt;init&gt;(): &lt;$anon: Throwable =&gt; akka.http.scaladsl.server.Route&gt; = {
+      $anonfun.super.&lt;init&gt;();
+      ()
+    };
+    final override def applyOrElse[A1 &lt;: Throwable, B1 &gt;: akka.http.scaladsl.server.Route](x1: A1, default: A1 =&gt; B1): B1 = ((x1.asInstanceOf[Throwable]: Throwable): Throwable @unchecked) match {
+      case (t @ (_: Exception)) =&gt; {
+        t.printStackTrace();
+        server.this.Directive.addDirectiveApply[(akka.http.scaladsl.model.Uri,)](akka.http.scaladsl.server.Directives.extractUri)(util.this.ApplyConverter.hac1[akka.http.scaladsl.model.Uri]).apply(((uri: akka.http.scaladsl.model.Uri) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+          &lt;artifact&gt; val x$1: akka.http.scaladsl.model.StatusCodes.ServerError = akka.http.scaladsl.model.StatusCodes.InternalServerError;
+          &lt;artifact&gt; val x$2: akka.http.scaladsl.model.HttpEntity.Strict = model.this.HttpEntity.apply(&quot;Error &quot;.+(t.getMessage()));
+          &lt;artifact&gt; val x$3: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+          &lt;artifact&gt; val x$4: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+          akka.http.scaladsl.model.HttpResponse.apply(x$1, x$3, x$2, x$4)
+        })(marshalling.this.Marshaller.fromResponse))))
+      }
+      case (defaultCase$ @ _) =&gt; default.apply(x1)
+    };
+    final def isDefinedAt(x1: Throwable): Boolean = ((x1.asInstanceOf[Throwable]: Throwable): Throwable @unchecked) match {
+      case (t @ (_: Exception)) =&gt; true
+      case (defaultCase$ @ _) =&gt; false
+    }
+  };
+  new $anonfun()
+}: PartialFunction[Throwable,akka.http.scaladsl.server.Route]))
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          144
+        </td>
+        <td>
+          939
+          -
+          939
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.accounts.routes.AccountsRoutes.$anonfun.&lt;init&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          new $anonfun()
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          129
+        </td>
+        <td>
+          974
+          -
+          993
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.printStackTrace
+        </td>
+        <td style="background: #F0ADAD">
+          t.printStackTrace()
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          131
+        </td>
+        <td>
+          1001
+          -
+          1001
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.http.scaladsl.server.util.ApplyConverterInstances.hac1
+        </td>
+        <td style="background: #F0ADAD">
+          util.this.ApplyConverter.hac1[akka.http.scaladsl.model.Uri]
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          130
+        </td>
+        <td>
+          1001
+          -
+          1011
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.BasicDirectives.extractUri
+        </td>
+        <td style="background: #F0ADAD">
+          akka.http.scaladsl.server.Directives.extractUri
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          143
+        </td>
+        <td>
+          1001
+          -
+          1128
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #F0ADAD">
+          server.this.Directive.addDirectiveApply[(akka.http.scaladsl.model.Uri,)](akka.http.scaladsl.server.Directives.extractUri)(util.this.ApplyConverter.hac1[akka.http.scaladsl.model.Uri]).apply(((uri: akka.http.scaladsl.model.Uri) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+  &lt;artifact&gt; val x$1: akka.http.scaladsl.model.StatusCodes.ServerError = akka.http.scaladsl.model.StatusCodes.InternalServerError;
+  &lt;artifact&gt; val x$2: akka.http.scaladsl.model.HttpEntity.Strict = model.this.HttpEntity.apply(&quot;Error &quot;.+(t.getMessage()));
+  &lt;artifact&gt; val x$3: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+  &lt;artifact&gt; val x$4: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+  akka.http.scaladsl.model.HttpResponse.apply(x$1, x$3, x$2, x$4)
+})(marshalling.this.Marshaller.fromResponse))))
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          137
+        </td>
+        <td>
+          1039
+          -
+          1039
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpResponse.apply$default$2
+        </td>
+        <td style="background: #F0ADAD">
+          akka.http.scaladsl.model.HttpResponse.apply$default$2
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          140
+        </td>
+        <td>
+          1051
+          -
+          1051
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.PredefinedToResponseMarshallers.fromResponse
+        </td>
+        <td style="background: #F0ADAD">
+          marshalling.this.Marshaller.fromResponse
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          134
+        </td>
+        <td>
+          1105
+          -
+          1117
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.getMessage
+        </td>
+        <td style="background: #F0ADAD">
+          t.getMessage()
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          142
+        </td>
+        <td>
+          1030
+          -
+          1119
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.RouteDirectives.complete
+        </td>
+        <td style="background: #F0ADAD">
+          akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+  &lt;artifact&gt; val x$1: akka.http.scaladsl.model.StatusCodes.ServerError = akka.http.scaladsl.model.StatusCodes.InternalServerError;
+  &lt;artifact&gt; val x$2: akka.http.scaladsl.model.HttpEntity.Strict = model.this.HttpEntity.apply(&quot;Error &quot;.+(t.getMessage()));
+  &lt;artifact&gt; val x$3: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+  &lt;artifact&gt; val x$4: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+  akka.http.scaladsl.model.HttpResponse.apply(x$1, x$3, x$2, x$4)
+})(marshalling.this.Marshaller.fromResponse))
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          133
+        </td>
+        <td>
+          1094
+          -
+          1102
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Error &quot;
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          136
+        </td>
+        <td>
+          1094
+          -
+          1117
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpEntity.apply
+        </td>
+        <td style="background: #F0ADAD">
+          model.this.HttpEntity.apply(&quot;Error &quot;.+(t.getMessage()))
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          139
+        </td>
+        <td>
+          1039
+          -
+          1118
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpResponse.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.http.scaladsl.model.HttpResponse.apply(x$1, x$3, x$2, x$4)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          138
+        </td>
+        <td>
+          1039
+          -
+          1039
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpResponse.apply$default$4
+        </td>
+        <td style="background: #F0ADAD">
+          akka.http.scaladsl.model.HttpResponse.apply$default$4
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          132
+        </td>
+        <td>
+          1052
+          -
+          1083
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.StatusCodes.InternalServerError
+        </td>
+        <td style="background: #F0ADAD">
+          akka.http.scaladsl.model.StatusCodes.InternalServerError
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          141
+        </td>
+        <td>
+          1039
+          -
+          1118
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
+        </td>
+        <td style="background: #F0ADAD">
+          marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+  &lt;artifact&gt; val x$1: akka.http.scaladsl.model.StatusCodes.ServerError = akka.http.scaladsl.model.StatusCodes.InternalServerError;
+  &lt;artifact&gt; val x$2: akka.http.scaladsl.model.HttpEntity.Strict = model.this.HttpEntity.apply(&quot;Error &quot;.+(t.getMessage()));
+  &lt;artifact&gt; val x$3: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+  &lt;artifact&gt; val x$4: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+  akka.http.scaladsl.model.HttpResponse.apply(x$1, x$3, x$2, x$4)
+})(marshalling.this.Marshaller.fromResponse)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          135
+        </td>
+        <td>
+          1094
+          -
+          1117
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Error &quot;.+(t.getMessage())
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          146
+        </td>
+        <td>
+          1180
+          -
+          1184
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          6000
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          148
+        </td>
+        <td>
+          1172
+          -
+          1198
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.util.Timeout.apply
+        </td>
+        <td style="background: #AEF1AE">
+          akka.util.Timeout.apply(scala.concurrent.duration.`package`.DurationInt(6000).milliseconds)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          147
+        </td>
+        <td>
+          1180
+          -
+          1197
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.concurrent.duration.DurationConversions.milliseconds
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.duration.`package`.DurationInt(6000).milliseconds
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          149
+        </td>
+        <td>
+          1291
+          -
+          1303
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.accounts.routes.AccountsRoutes.routingActor
+        </td>
+        <td style="background: #AEF1AE">
+          AccountsRoutes.this.routingActor
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          151
+        </td>
+        <td>
+          1262
+          -
+          1304
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          com.accounts.routes.AccountsOperationRoute.route
+        </td>
+        <td style="background: #AEF1AE">
+          AccountsOperationRoute.route(AccountsRoutes.this.routingActor)(AccountsRoutes.this.timeout)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          150
+        </td>
+        <td>
+          1290
+          -
+          1290
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.accounts.routes.AccountsRoutes.timeout
+        </td>
+        <td style="background: #AEF1AE">
+          AccountsRoutes.this.timeout
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          156
+        </td>
+        <td>
+          1376
+          -
+          1464
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.handleExceptions(AccountsRoutes.this.exceptionHandler)).apply(AccountsRoutes.this.logAccess(AccountsRoutes.this.routes(mat)))
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          153
+        </td>
+        <td>
+          1376
+          -
+          1410
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.ExecutionDirectives.handleExceptions
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.handleExceptions(AccountsRoutes.this.exceptionHandler)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          152
+        </td>
+        <td>
+          1393
+          -
+          1409
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.accounts.routes.AccountsRoutes.exceptionHandler
+        </td>
+        <td style="background: #AEF1AE">
+          AccountsRoutes.this.exceptionHandler
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          155
+        </td>
+        <td>
+          1420
+          -
+          1455
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.accounts.routes.AccountsRoutes.logAccess
+        </td>
+        <td style="background: #AEF1AE">
+          AccountsRoutes.this.logAccess(AccountsRoutes.this.routes(mat))
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          154
+        </td>
+        <td>
+          1440
+          -
+          1446
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          com.accounts.routes.AccountsRoutes.routes
+        </td>
+        <td style="background: #AEF1AE">
+          AccountsRoutes.this.routes(mat)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          158
+        </td>
+        <td>
+          1591
+          -
+          1604
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          marker.+(f.apply(r))
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          160
+        </td>
+        <td>
+          1582
+          -
+          1635
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.LogEntry.apply
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.directives.LogEntry.apply(marker.+(f.apply(r)), akka.event.Logging.InfoLevel)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          157
+        </td>
+        <td>
+          1600
+          -
+          1604
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          f.apply(r)
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          159
+        </td>
+        <td>
+          1606
+          -
+          1634
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.event.Logging.InfoLevel
+        </td>
+        <td style="background: #AEF1AE">
+          akka.event.Logging.InfoLevel
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          164
+        </td>
+        <td>
+          1641
+          -
+          1933
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          server.this.Directive.addDirectiveApply[(akka.http.scaladsl.model.HttpRequest,)](akka.http.scaladsl.server.Directives.extractRequest)(util.this.ApplyConverter.hac1[akka.http.scaladsl.model.HttpRequest]).apply(((request: akka.http.scaladsl.model.HttpRequest) =&gt; server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.logResult(directives.this.LoggingMagnet.forMessageFromFullShow[akka.http.scaladsl.server.RouteResult](toLogEntry(scala.StringContext.apply(&quot;&quot;, &quot; &quot;, &quot; ==&gt; &quot;).s(request.method.name(), request.uri), ((x0$1: Any) =&gt; x0$1 match {
+  case (c @ (_: akka.http.scaladsl.server.RouteResult.Complete)) =&gt; c.response.status.toString()
+  case (x @ _) =&gt; scala.StringContext.apply(&quot;unknown response part of type &quot;, &quot;&quot;).s(x.getClass())
+}))))).apply(innerRoute)))
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          162
+        </td>
+        <td>
+          1641
+          -
+          1641
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.http.scaladsl.server.util.ApplyConverterInstances.hac1
+        </td>
+        <td style="background: #AEF1AE">
+          util.this.ApplyConverter.hac1[akka.http.scaladsl.model.HttpRequest]
+        </td>
+      </tr><tr>
+        <td>
+          44
+        </td>
+        <td>
+          161
+        </td>
+        <td>
+          1641
+          -
+          1655
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.BasicDirectives.extractRequest
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.extractRequest
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          163
+        </td>
+        <td>
+          1676
+          -
+          1926
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.logResult(directives.this.LoggingMagnet.forMessageFromFullShow[akka.http.scaladsl.server.RouteResult](toLogEntry(scala.StringContext.apply(&quot;&quot;, &quot; &quot;, &quot; ==&gt; &quot;).s(request.method.name(), request.uri), ((x0$1: Any) =&gt; x0$1 match {
+  case (c @ (_: akka.http.scaladsl.server.RouteResult.Complete)) =&gt; c.response.status.toString()
+  case (x @ _) =&gt; scala.StringContext.apply(&quot;unknown response part of type &quot;, &quot;&quot;).s(x.getClass())
+}))))).apply(innerRoute)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          167
+        </td>
+        <td>
+          2068
+          -
+          2068
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.http.scaladsl.server.util.TupleOps.Join.join0P
+        </td>
+        <td style="background: #AEF1AE">
+          TupleOps.this.Join.join0P[Unit]
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          166
+        </td>
+        <td>
+          2070
+          -
+          2080
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.http.scaladsl.server.ImplicitPathMatcherConstruction._segmentStringToPathMatcher
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives._segmentStringToPathMatcher(&quot;accounts&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          169
+        </td>
+        <td>
+          2080
+          -
+          2080
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.http.scaladsl.server.util.TupleOps.Join.join0P
+        </td>
+        <td style="background: #AEF1AE">
+          TupleOps.this.Join.join0P[Unit]
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          165
+        </td>
+        <td>
+          2062
+          -
+          2067
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;app&quot;
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          168
+        </td>
+        <td>
+          2081
+          -
+          2095
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.http.scaladsl.server.ImplicitPathMatcherConstruction._segmentStringToPathMatcher
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives._segmentStringToPathMatcher(&quot;transactions&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          171
+        </td>
+        <td>
+          2051
+          -
+          2096
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.PathDirectives.pathPrefix
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.pathPrefix[Unit](akka.http.scaladsl.server.Directives._segmentStringToPathMatcher(&quot;app&quot;)./[Unit](akka.http.scaladsl.server.Directives._segmentStringToPathMatcher(&quot;accounts&quot;))(TupleOps.this.Join.join0P[Unit])./[Unit](akka.http.scaladsl.server.Directives._segmentStringToPathMatcher(&quot;transactions&quot;))(TupleOps.this.Join.join0P[Unit]))
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          266
+        </td>
+        <td>
+          2051
+          -
+          3575
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.pathPrefix[Unit](akka.http.scaladsl.server.Directives._segmentStringToPathMatcher(&quot;app&quot;)./[Unit](akka.http.scaladsl.server.Directives._segmentStringToPathMatcher(&quot;accounts&quot;))(TupleOps.this.Join.join0P[Unit])./[Unit](akka.http.scaladsl.server.Directives._segmentStringToPathMatcher(&quot;transactions&quot;))(TupleOps.this.Join.join0P[Unit]))).apply(akka.http.scaladsl.server.Directives._enhanceRouteWithConcatenation(akka.http.scaladsl.server.Directives._enhanceRouteWithConcatenation(server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.get).apply(server.this.Directive.addDirectiveApply[(Long,)](akka.http.scaladsl.server.Directives.path[(Long,)](akka.http.scaladsl.server.Directives.LongNumber))(util.this.ApplyConverter.hac1[Long]).apply(((custId: Long) =&gt; {
+  val getAccountsMessage: com.accounts.domain.GetAccountDetailsRequest = com.accounts.domain.GetAccountDetailsRequest.apply(custId);
+  val genericHttpResponse: scala.concurrent.Future[Any] = {
+    &lt;artifact&gt; val qual$1: akka.pattern.AskableActorRef = akka.pattern.`package`.ask(rootActor);
+    &lt;artifact&gt; val x$5: com.accounts.domain.GetAccountDetailsRequest = getAccountsMessage;
+    &lt;artifact&gt; val x$6: akka.util.Timeout = timeout;
+    &lt;artifact&gt; val x$7: akka.actor.ActorRef = qual$1.?$default$3(x$5);
+    qual$1.?(x$5)(x$6, x$7)
+  };
+  server.this.Directive.addDirectiveApply[(Any,)](akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])))(util.this.ApplyConverter.hac1[Any]).apply(((x0$2: Any) =&gt; x0$2 match {
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse(akka.http.scaladsl.model.StatusCodes.OK, (t @ (_: com.accounts.common.JsonResponse))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse((x @ (_: akka.http.scaladsl.model.StatusCode)), (msg @ (_: String))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+      &lt;artifact&gt; val x$8: akka.http.scaladsl.model.StatusCode = x;
+      &lt;artifact&gt; val x$9: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+      &lt;artifact&gt; val x$10: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+      &lt;artifact&gt; val x$11: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+      akka.http.scaladsl.model.HttpResponse.apply(x$8, x$10, x$9, x$11)
+    })(marshalling.this.Marshaller.fromResponse))
+    case (p @ _) =&gt; {
+      scala.Predef.println(p);
+      akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+    }
+  }))
+})))).~(server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.post).apply(server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.pathEnd).apply(server.this.Directive.addDirectiveApply[(com.accounts.domain.TransactionRequest,)](akka.http.scaladsl.server.Directives.entity[com.accounts.domain.TransactionRequest](akka.http.scaladsl.server.Directives.as[com.accounts.domain.TransactionRequest](unmarshalling.this.Unmarshaller.messageUnmarshallerFromEntityUnmarshaller[com.accounts.domain.TransactionRequest](com.accounts.marshallers.Json4sMarshaller.unmarshaller[com.accounts.domain.TransactionRequest](scala.reflect.ManifestFactory.classType[com.accounts.domain.TransactionRequest](classOf[com.accounts.domain.TransactionRequest]), com.accounts.marshallers.AccountsMarshaller.serialization, com.accounts.marshallers.AccountsMarshaller.formats)))))(util.this.ApplyConverter.hac1[com.accounts.domain.TransactionRequest]).apply(((c: com.accounts.domain.TransactionRequest) =&gt; {
+  val genericHttpResponse: scala.concurrent.Future[Any] = {
+    &lt;artifact&gt; val qual$2: akka.pattern.AskableActorRef = akka.pattern.`package`.ask(rootActor);
+    &lt;artifact&gt; val x$12: com.accounts.domain.TransactionRequest = c;
+    &lt;artifact&gt; val x$13: akka.util.Timeout = timeout;
+    &lt;artifact&gt; val x$14: akka.actor.ActorRef = qual$2.?$default$3(x$12);
+    qual$2.?(x$12)(x$13, x$14)
+  };
+  server.this.Directive.addDirectiveApply[(Any,)](akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])))(util.this.ApplyConverter.hac1[Any]).apply(((x0$3: Any) =&gt; x0$3 match {
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse(akka.http.scaladsl.model.StatusCodes.OK, (t @ (_: com.accounts.common.JsonResponse))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse((x @ (_: akka.http.scaladsl.model.StatusCode)), (msg @ (_: String))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+      &lt;artifact&gt; val x$15: akka.http.scaladsl.model.StatusCode = x;
+      &lt;artifact&gt; val x$16: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+      &lt;artifact&gt; val x$17: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+      &lt;artifact&gt; val x$18: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+      akka.http.scaladsl.model.HttpResponse.apply(x$15, x$17, x$16, x$18)
+    })(marshalling.this.Marshaller.fromResponse))
+    case (p @ _) =&gt; {
+      scala.Predef.println(p);
+      akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+    }
+  }))
+})))))).~(akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.StatusCodes.ClientError](akka.http.scaladsl.model.StatusCodes.MethodNotAllowed)(marshalling.this.Marshaller.fromStatusCode))))
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          170
+        </td>
+        <td>
+          2062
+          -
+          2095
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.server.PathMatcher./
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives._segmentStringToPathMatcher(&quot;app&quot;)./[Unit](akka.http.scaladsl.server.Directives._segmentStringToPathMatcher(&quot;accounts&quot;))(TupleOps.this.Join.join0P[Unit])./[Unit](akka.http.scaladsl.server.Directives._segmentStringToPathMatcher(&quot;transactions&quot;))(TupleOps.this.Join.join0P[Unit])
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          172
+        </td>
+        <td>
+          2106
+          -
+          2109
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.MethodDirectives.get
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.get
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          212
+        </td>
+        <td>
+          2106
+          -
+          2813
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.get).apply(server.this.Directive.addDirectiveApply[(Long,)](akka.http.scaladsl.server.Directives.path[(Long,)](akka.http.scaladsl.server.Directives.LongNumber))(util.this.ApplyConverter.hac1[Long]).apply(((custId: Long) =&gt; {
+  val getAccountsMessage: com.accounts.domain.GetAccountDetailsRequest = com.accounts.domain.GetAccountDetailsRequest.apply(custId);
+  val genericHttpResponse: scala.concurrent.Future[Any] = {
+    &lt;artifact&gt; val qual$1: akka.pattern.AskableActorRef = akka.pattern.`package`.ask(rootActor);
+    &lt;artifact&gt; val x$5: com.accounts.domain.GetAccountDetailsRequest = getAccountsMessage;
+    &lt;artifact&gt; val x$6: akka.util.Timeout = timeout;
+    &lt;artifact&gt; val x$7: akka.actor.ActorRef = qual$1.?$default$3(x$5);
+    qual$1.?(x$5)(x$6, x$7)
+  };
+  server.this.Directive.addDirectiveApply[(Any,)](akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])))(util.this.ApplyConverter.hac1[Any]).apply(((x0$2: Any) =&gt; x0$2 match {
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse(akka.http.scaladsl.model.StatusCodes.OK, (t @ (_: com.accounts.common.JsonResponse))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse((x @ (_: akka.http.scaladsl.model.StatusCode)), (msg @ (_: String))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+      &lt;artifact&gt; val x$8: akka.http.scaladsl.model.StatusCode = x;
+      &lt;artifact&gt; val x$9: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+      &lt;artifact&gt; val x$10: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+      &lt;artifact&gt; val x$11: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+      akka.http.scaladsl.model.HttpResponse.apply(x$8, x$10, x$9, x$11)
+    })(marshalling.this.Marshaller.fromResponse))
+    case (p @ _) =&gt; {
+      scala.Predef.println(p);
+      akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+    }
+  }))
+})))
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          173
+        </td>
+        <td>
+          2124
+          -
+          2134
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.server.PathMatchers.LongNumber
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.LongNumber
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          175
+        </td>
+        <td>
+          2123
+          -
+          2123
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.http.scaladsl.server.util.ApplyConverterInstances.hac1
+        </td>
+        <td style="background: #AEF1AE">
+          util.this.ApplyConverter.hac1[Long]
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          211
+        </td>
+        <td>
+          2119
+          -
+          2804
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          server.this.Directive.addDirectiveApply[(Long,)](akka.http.scaladsl.server.Directives.path[(Long,)](akka.http.scaladsl.server.Directives.LongNumber))(util.this.ApplyConverter.hac1[Long]).apply(((custId: Long) =&gt; {
+  val getAccountsMessage: com.accounts.domain.GetAccountDetailsRequest = com.accounts.domain.GetAccountDetailsRequest.apply(custId);
+  val genericHttpResponse: scala.concurrent.Future[Any] = {
+    &lt;artifact&gt; val qual$1: akka.pattern.AskableActorRef = akka.pattern.`package`.ask(rootActor);
+    &lt;artifact&gt; val x$5: com.accounts.domain.GetAccountDetailsRequest = getAccountsMessage;
+    &lt;artifact&gt; val x$6: akka.util.Timeout = timeout;
+    &lt;artifact&gt; val x$7: akka.actor.ActorRef = qual$1.?$default$3(x$5);
+    qual$1.?(x$5)(x$6, x$7)
+  };
+  server.this.Directive.addDirectiveApply[(Any,)](akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])))(util.this.ApplyConverter.hac1[Any]).apply(((x0$2: Any) =&gt; x0$2 match {
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse(akka.http.scaladsl.model.StatusCodes.OK, (t @ (_: com.accounts.common.JsonResponse))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse((x @ (_: akka.http.scaladsl.model.StatusCode)), (msg @ (_: String))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+      &lt;artifact&gt; val x$8: akka.http.scaladsl.model.StatusCode = x;
+      &lt;artifact&gt; val x$9: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+      &lt;artifact&gt; val x$10: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+      &lt;artifact&gt; val x$11: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+      akka.http.scaladsl.model.HttpResponse.apply(x$8, x$10, x$9, x$11)
+    })(marshalling.this.Marshaller.fromResponse))
+    case (p @ _) =&gt; {
+      scala.Predef.println(p);
+      akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+    }
+  }))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          174
+        </td>
+        <td>
+          2119
+          -
+          2135
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.PathDirectives.path
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.path[(Long,)](akka.http.scaladsl.server.Directives.LongNumber)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          176
+        </td>
+        <td>
+          2181
+          -
+          2213
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.accounts.domain.GetAccountDetailsRequest.apply
+        </td>
+        <td style="background: #AEF1AE">
+          com.accounts.domain.GetAccountDetailsRequest.apply(custId)
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          178
+        </td>
+        <td>
+          2258
+          -
+          2258
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.pattern.AskableActorRef.?$default$3
+        </td>
+        <td style="background: #AEF1AE">
+          qual$1.?$default$3(x$5)
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          177
+        </td>
+        <td>
+          2248
+          -
+          2257
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.pattern.AskSupport.ask
+        </td>
+        <td style="background: #AEF1AE">
+          akka.pattern.`package`.ask(rootActor)
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          179
+        </td>
+        <td>
+          2248
+          -
+          2278
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.pattern.AskableActorRef.?
+        </td>
+        <td style="background: #AEF1AE">
+          qual$1.?(x$5)(x$6, x$7)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          182
+        </td>
+        <td>
+          2289
+          -
+          2319
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.FutureDirectives.onSuccess
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any]))
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          181
+        </td>
+        <td>
+          2299
+          -
+          2318
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.OnSuccessMagnet.apply
+        </td>
+        <td style="background: #AEF1AE">
+          directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          180
+        </td>
+        <td>
+          2299
+          -
+          2299
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.http.scaladsl.server.util.LowerPriorityTupler.forAnyRef
+        </td>
+        <td style="background: #AEF1AE">
+          util.this.Tupler.forAnyRef[Any]
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          183
+        </td>
+        <td>
+          2298
+          -
+          2298
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.http.scaladsl.server.util.ApplyConverterInstances.hac1
+        </td>
+        <td style="background: #AEF1AE">
+          util.this.ApplyConverter.hac1[Any]
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          210
+        </td>
+        <td>
+          2289
+          -
+          2793
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          server.this.Directive.addDirectiveApply[(Any,)](akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])))(util.this.ApplyConverter.hac1[Any]).apply(((x0$2: Any) =&gt; x0$2 match {
+  case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse(akka.http.scaladsl.model.StatusCodes.OK, (t @ (_: com.accounts.common.JsonResponse))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+  case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse((x @ (_: akka.http.scaladsl.model.StatusCode)), (msg @ (_: String))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+    &lt;artifact&gt; val x$8: akka.http.scaladsl.model.StatusCode = x;
+    &lt;artifact&gt; val x$9: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+    &lt;artifact&gt; val x$10: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+    &lt;artifact&gt; val x$11: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+    akka.http.scaladsl.model.HttpResponse.apply(x$8, x$10, x$9, x$11)
+  })(marshalling.this.Marshaller.fromResponse))
+  case (p @ _) =&gt; {
+    scala.Predef.println(p);
+    akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+  }
+}))
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          191
+        </td>
+        <td>
+          2412
+          -
+          2462
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.RouteDirectives.complete
+        </td>
+        <td style="background: #F0ADAD">
+          akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          185
+        </td>
+        <td>
+          2432
+          -
+          2450
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.http.scaladsl.model.ContentType.apply
+        </td>
+        <td style="background: #F0ADAD">
+          model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json)
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          184
+        </td>
+        <td>
+          2432
+          -
+          2450
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.MediaTypes.application/json
+        </td>
+        <td style="background: #F0ADAD">
+          akka.http.scaladsl.model.MediaTypes.application/json
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          187
+        </td>
+        <td>
+          2421
+          -
+          2461
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpEntity.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson)
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          190
+        </td>
+        <td>
+          2421
+          -
+          2461
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
+        </td>
+        <td style="background: #F0ADAD">
+          marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller))
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          189
+        </td>
+        <td>
+          2431
+          -
+          2431
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.LowPriorityToResponseMarshallerImplicits.liftMarshaller
+        </td>
+        <td style="background: #F0ADAD">
+          marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          186
+        </td>
+        <td>
+          2452
+          -
+          2460
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.accounts.common.JsonResponse.toJson
+        </td>
+        <td style="background: #F0ADAD">
+          t.toJson
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          188
+        </td>
+        <td>
+          2431
+          -
+          2431
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.PredefinedToEntityMarshallers.MessageEntityMarshaller
+        </td>
+        <td style="background: #F0ADAD">
+          marshalling.this.Marshaller.MessageEntityMarshaller
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          200
+        </td>
+        <td>
+          2535
+          -
+          2615
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.RouteDirectives.complete
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+  &lt;artifact&gt; val x$8: akka.http.scaladsl.model.StatusCode = x;
+  &lt;artifact&gt; val x$9: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+  &lt;artifact&gt; val x$10: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+  &lt;artifact&gt; val x$11: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+  akka.http.scaladsl.model.HttpResponse.apply(x$8, x$10, x$9, x$11)
+})(marshalling.this.Marshaller.fromResponse))
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          194
+        </td>
+        <td>
+          2578
+          -
+          2613
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpEntity.apply
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          193
+        </td>
+        <td>
+          2589
+          -
+          2607
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.http.scaladsl.model.ContentType.apply
+        </td>
+        <td style="background: #AEF1AE">
+          model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          196
+        </td>
+        <td>
+          2544
+          -
+          2544
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpResponse.apply$default$4
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.model.HttpResponse.apply$default$4
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          199
+        </td>
+        <td>
+          2544
+          -
+          2614
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
+        </td>
+        <td style="background: #AEF1AE">
+          marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+  &lt;artifact&gt; val x$8: akka.http.scaladsl.model.StatusCode = x;
+  &lt;artifact&gt; val x$9: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+  &lt;artifact&gt; val x$10: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+  &lt;artifact&gt; val x$11: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+  akka.http.scaladsl.model.HttpResponse.apply(x$8, x$10, x$9, x$11)
+})(marshalling.this.Marshaller.fromResponse)
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          198
+        </td>
+        <td>
+          2556
+          -
+          2556
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.PredefinedToResponseMarshallers.fromResponse
+        </td>
+        <td style="background: #AEF1AE">
+          marshalling.this.Marshaller.fromResponse
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          192
+        </td>
+        <td>
+          2589
+          -
+          2607
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.MediaTypes.application/json
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.model.MediaTypes.application/json
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          195
+        </td>
+        <td>
+          2544
+          -
+          2544
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpResponse.apply$default$2
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.model.HttpResponse.apply$default$2
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          197
+        </td>
+        <td>
+          2544
+          -
+          2614
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpResponse.apply
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.model.HttpResponse.apply(x$8, x$10, x$9, x$11)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          201
+        </td>
+        <td>
+          2657
+          -
+          2667
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.println(p)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          209
+        </td>
+        <td>
+          2682
+          -
+          2780
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.RouteDirectives.complete
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          202
+        </td>
+        <td>
+          2691
+          -
+          2722
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.StatusCodes.InternalServerError
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.model.StatusCodes.InternalServerError
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          205
+        </td>
+        <td>
+          2690
+          -
+          2690
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError]
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          208
+        </td>
+        <td>
+          2682
+          -
+          2780
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
+        </td>
+        <td style="background: #AEF1AE">
+          marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller))
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          207
+        </td>
+        <td>
+          2690
+          -
+          2690
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.PredefinedToResponseMarshallers.fromStatusCodeAndValue
+        </td>
+        <td style="background: #AEF1AE">
+          marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          204
+        </td>
+        <td>
+          2682
+          -
+          2780
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          203
+        </td>
+        <td>
+          2724
+          -
+          2779
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Unknown error occurred. Please contact administrator.&quot;
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          206
+        </td>
+        <td>
+          2690
+          -
+          2690
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.PredefinedToEntityMarshallers.StringMarshaller
+        </td>
+        <td style="background: #AEF1AE">
+          marshalling.this.Marshaller.StringMarshaller
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          260
+        </td>
+        <td>
+          2106
+          -
+          3522
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.RouteConcatenation.RouteWithConcatenation.~
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives._enhanceRouteWithConcatenation(server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.get).apply(server.this.Directive.addDirectiveApply[(Long,)](akka.http.scaladsl.server.Directives.path[(Long,)](akka.http.scaladsl.server.Directives.LongNumber))(util.this.ApplyConverter.hac1[Long]).apply(((custId: Long) =&gt; {
+  val getAccountsMessage: com.accounts.domain.GetAccountDetailsRequest = com.accounts.domain.GetAccountDetailsRequest.apply(custId);
+  val genericHttpResponse: scala.concurrent.Future[Any] = {
+    &lt;artifact&gt; val qual$1: akka.pattern.AskableActorRef = akka.pattern.`package`.ask(rootActor);
+    &lt;artifact&gt; val x$5: com.accounts.domain.GetAccountDetailsRequest = getAccountsMessage;
+    &lt;artifact&gt; val x$6: akka.util.Timeout = timeout;
+    &lt;artifact&gt; val x$7: akka.actor.ActorRef = qual$1.?$default$3(x$5);
+    qual$1.?(x$5)(x$6, x$7)
+  };
+  server.this.Directive.addDirectiveApply[(Any,)](akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])))(util.this.ApplyConverter.hac1[Any]).apply(((x0$2: Any) =&gt; x0$2 match {
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse(akka.http.scaladsl.model.StatusCodes.OK, (t @ (_: com.accounts.common.JsonResponse))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse((x @ (_: akka.http.scaladsl.model.StatusCode)), (msg @ (_: String))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+      &lt;artifact&gt; val x$8: akka.http.scaladsl.model.StatusCode = x;
+      &lt;artifact&gt; val x$9: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+      &lt;artifact&gt; val x$10: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+      &lt;artifact&gt; val x$11: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+      akka.http.scaladsl.model.HttpResponse.apply(x$8, x$10, x$9, x$11)
+    })(marshalling.this.Marshaller.fromResponse))
+    case (p @ _) =&gt; {
+      scala.Predef.println(p);
+      akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+    }
+  }))
+})))).~(server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.post).apply(server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.pathEnd).apply(server.this.Directive.addDirectiveApply[(com.accounts.domain.TransactionRequest,)](akka.http.scaladsl.server.Directives.entity[com.accounts.domain.TransactionRequest](akka.http.scaladsl.server.Directives.as[com.accounts.domain.TransactionRequest](unmarshalling.this.Unmarshaller.messageUnmarshallerFromEntityUnmarshaller[com.accounts.domain.TransactionRequest](com.accounts.marshallers.Json4sMarshaller.unmarshaller[com.accounts.domain.TransactionRequest](scala.reflect.ManifestFactory.classType[com.accounts.domain.TransactionRequest](classOf[com.accounts.domain.TransactionRequest]), com.accounts.marshallers.AccountsMarshaller.serialization, com.accounts.marshallers.AccountsMarshaller.formats)))))(util.this.ApplyConverter.hac1[com.accounts.domain.TransactionRequest]).apply(((c: com.accounts.domain.TransactionRequest) =&gt; {
+  val genericHttpResponse: scala.concurrent.Future[Any] = {
+    &lt;artifact&gt; val qual$2: akka.pattern.AskableActorRef = akka.pattern.`package`.ask(rootActor);
+    &lt;artifact&gt; val x$12: com.accounts.domain.TransactionRequest = c;
+    &lt;artifact&gt; val x$13: akka.util.Timeout = timeout;
+    &lt;artifact&gt; val x$14: akka.actor.ActorRef = qual$2.?$default$3(x$12);
+    qual$2.?(x$12)(x$13, x$14)
+  };
+  server.this.Directive.addDirectiveApply[(Any,)](akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])))(util.this.ApplyConverter.hac1[Any]).apply(((x0$3: Any) =&gt; x0$3 match {
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse(akka.http.scaladsl.model.StatusCodes.OK, (t @ (_: com.accounts.common.JsonResponse))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse((x @ (_: akka.http.scaladsl.model.StatusCode)), (msg @ (_: String))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+      &lt;artifact&gt; val x$15: akka.http.scaladsl.model.StatusCode = x;
+      &lt;artifact&gt; val x$16: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+      &lt;artifact&gt; val x$17: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+      &lt;artifact&gt; val x$18: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+      akka.http.scaladsl.model.HttpResponse.apply(x$15, x$17, x$16, x$18)
+    })(marshalling.this.Marshaller.fromResponse))
+    case (p @ _) =&gt; {
+      scala.Predef.println(p);
+      akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+    }
+  }))
+})))))
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          259
+        </td>
+        <td>
+          2823
+          -
+          3522
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.post).apply(server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.pathEnd).apply(server.this.Directive.addDirectiveApply[(com.accounts.domain.TransactionRequest,)](akka.http.scaladsl.server.Directives.entity[com.accounts.domain.TransactionRequest](akka.http.scaladsl.server.Directives.as[com.accounts.domain.TransactionRequest](unmarshalling.this.Unmarshaller.messageUnmarshallerFromEntityUnmarshaller[com.accounts.domain.TransactionRequest](com.accounts.marshallers.Json4sMarshaller.unmarshaller[com.accounts.domain.TransactionRequest](scala.reflect.ManifestFactory.classType[com.accounts.domain.TransactionRequest](classOf[com.accounts.domain.TransactionRequest]), com.accounts.marshallers.AccountsMarshaller.serialization, com.accounts.marshallers.AccountsMarshaller.formats)))))(util.this.ApplyConverter.hac1[com.accounts.domain.TransactionRequest]).apply(((c: com.accounts.domain.TransactionRequest) =&gt; {
+  val genericHttpResponse: scala.concurrent.Future[Any] = {
+    &lt;artifact&gt; val qual$2: akka.pattern.AskableActorRef = akka.pattern.`package`.ask(rootActor);
+    &lt;artifact&gt; val x$12: com.accounts.domain.TransactionRequest = c;
+    &lt;artifact&gt; val x$13: akka.util.Timeout = timeout;
+    &lt;artifact&gt; val x$14: akka.actor.ActorRef = qual$2.?$default$3(x$12);
+    qual$2.?(x$12)(x$13, x$14)
+  };
+  server.this.Directive.addDirectiveApply[(Any,)](akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])))(util.this.ApplyConverter.hac1[Any]).apply(((x0$3: Any) =&gt; x0$3 match {
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse(akka.http.scaladsl.model.StatusCodes.OK, (t @ (_: com.accounts.common.JsonResponse))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse((x @ (_: akka.http.scaladsl.model.StatusCode)), (msg @ (_: String))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+      &lt;artifact&gt; val x$15: akka.http.scaladsl.model.StatusCode = x;
+      &lt;artifact&gt; val x$16: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+      &lt;artifact&gt; val x$17: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+      &lt;artifact&gt; val x$18: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+      akka.http.scaladsl.model.HttpResponse.apply(x$15, x$17, x$16, x$18)
+    })(marshalling.this.Marshaller.fromResponse))
+    case (p @ _) =&gt; {
+      scala.Predef.println(p);
+      akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+    }
+  }))
+}))))
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          213
+        </td>
+        <td>
+          2823
+          -
+          2827
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.MethodDirectives.post
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.post
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          214
+        </td>
+        <td>
+          2839
+          -
+          2846
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.PathDirectives.pathEnd
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.pathEnd
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          258
+        </td>
+        <td>
+          2839
+          -
+          3513
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.pathEnd).apply(server.this.Directive.addDirectiveApply[(com.accounts.domain.TransactionRequest,)](akka.http.scaladsl.server.Directives.entity[com.accounts.domain.TransactionRequest](akka.http.scaladsl.server.Directives.as[com.accounts.domain.TransactionRequest](unmarshalling.this.Unmarshaller.messageUnmarshallerFromEntityUnmarshaller[com.accounts.domain.TransactionRequest](com.accounts.marshallers.Json4sMarshaller.unmarshaller[com.accounts.domain.TransactionRequest](scala.reflect.ManifestFactory.classType[com.accounts.domain.TransactionRequest](classOf[com.accounts.domain.TransactionRequest]), com.accounts.marshallers.AccountsMarshaller.serialization, com.accounts.marshallers.AccountsMarshaller.formats)))))(util.this.ApplyConverter.hac1[com.accounts.domain.TransactionRequest]).apply(((c: com.accounts.domain.TransactionRequest) =&gt; {
+  val genericHttpResponse: scala.concurrent.Future[Any] = {
+    &lt;artifact&gt; val qual$2: akka.pattern.AskableActorRef = akka.pattern.`package`.ask(rootActor);
+    &lt;artifact&gt; val x$12: com.accounts.domain.TransactionRequest = c;
+    &lt;artifact&gt; val x$13: akka.util.Timeout = timeout;
+    &lt;artifact&gt; val x$14: akka.actor.ActorRef = qual$2.?$default$3(x$12);
+    qual$2.?(x$12)(x$13, x$14)
+  };
+  server.this.Directive.addDirectiveApply[(Any,)](akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])))(util.this.ApplyConverter.hac1[Any]).apply(((x0$3: Any) =&gt; x0$3 match {
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse(akka.http.scaladsl.model.StatusCodes.OK, (t @ (_: com.accounts.common.JsonResponse))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse((x @ (_: akka.http.scaladsl.model.StatusCode)), (msg @ (_: String))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+      &lt;artifact&gt; val x$15: akka.http.scaladsl.model.StatusCode = x;
+      &lt;artifact&gt; val x$16: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+      &lt;artifact&gt; val x$17: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+      &lt;artifact&gt; val x$18: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+      akka.http.scaladsl.model.HttpResponse.apply(x$15, x$17, x$16, x$18)
+    })(marshalling.this.Marshaller.fromResponse))
+    case (p @ _) =&gt; {
+      scala.Predef.println(p);
+      akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+    }
+  }))
+})))
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          218
+        </td>
+        <td>
+          2869
+          -
+          2869
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          com.accounts.marshallers.Json4sMarshaller.unmarshaller
+        </td>
+        <td style="background: #AEF1AE">
+          com.accounts.marshallers.Json4sMarshaller.unmarshaller[com.accounts.domain.TransactionRequest](scala.reflect.ManifestFactory.classType[com.accounts.domain.TransactionRequest](classOf[com.accounts.domain.TransactionRequest]), com.accounts.marshallers.AccountsMarshaller.serialization, com.accounts.marshallers.AccountsMarshaller.formats)
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          220
+        </td>
+        <td>
+          2867
+          -
+          2889
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.MarshallingDirectives.as
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.as[com.accounts.domain.TransactionRequest](unmarshalling.this.Unmarshaller.messageUnmarshallerFromEntityUnmarshaller[com.accounts.domain.TransactionRequest](com.accounts.marshallers.Json4sMarshaller.unmarshaller[com.accounts.domain.TransactionRequest](scala.reflect.ManifestFactory.classType[com.accounts.domain.TransactionRequest](classOf[com.accounts.domain.TransactionRequest]), com.accounts.marshallers.AccountsMarshaller.serialization, com.accounts.marshallers.AccountsMarshaller.formats)))
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          217
+        </td>
+        <td>
+          2869
+          -
+          2869
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.accounts.marshallers.AccountsMarshaller.formats
+        </td>
+        <td style="background: #AEF1AE">
+          com.accounts.marshallers.AccountsMarshaller.formats
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          216
+        </td>
+        <td>
+          2869
+          -
+          2869
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.accounts.marshallers.BaseMarshaller.serialization
+        </td>
+        <td style="background: #AEF1AE">
+          com.accounts.marshallers.AccountsMarshaller.serialization
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          219
+        </td>
+        <td>
+          2869
+          -
+          2869
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.unmarshalling.LowerPriorityGenericUnmarshallers.messageUnmarshallerFromEntityUnmarshaller
+        </td>
+        <td style="background: #AEF1AE">
+          unmarshalling.this.Unmarshaller.messageUnmarshallerFromEntityUnmarshaller[com.accounts.domain.TransactionRequest](com.accounts.marshallers.Json4sMarshaller.unmarshaller[com.accounts.domain.TransactionRequest](scala.reflect.ManifestFactory.classType[com.accounts.domain.TransactionRequest](classOf[com.accounts.domain.TransactionRequest]), com.accounts.marshallers.AccountsMarshaller.serialization, com.accounts.marshallers.AccountsMarshaller.formats))
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          222
+        </td>
+        <td>
+          2866
+          -
+          2866
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.http.scaladsl.server.util.ApplyConverterInstances.hac1
+        </td>
+        <td style="background: #AEF1AE">
+          util.this.ApplyConverter.hac1[com.accounts.domain.TransactionRequest]
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          257
+        </td>
+        <td>
+          2860
+          -
+          3502
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          server.this.Directive.addDirectiveApply[(com.accounts.domain.TransactionRequest,)](akka.http.scaladsl.server.Directives.entity[com.accounts.domain.TransactionRequest](akka.http.scaladsl.server.Directives.as[com.accounts.domain.TransactionRequest](unmarshalling.this.Unmarshaller.messageUnmarshallerFromEntityUnmarshaller[com.accounts.domain.TransactionRequest](com.accounts.marshallers.Json4sMarshaller.unmarshaller[com.accounts.domain.TransactionRequest](scala.reflect.ManifestFactory.classType[com.accounts.domain.TransactionRequest](classOf[com.accounts.domain.TransactionRequest]), com.accounts.marshallers.AccountsMarshaller.serialization, com.accounts.marshallers.AccountsMarshaller.formats)))))(util.this.ApplyConverter.hac1[com.accounts.domain.TransactionRequest]).apply(((c: com.accounts.domain.TransactionRequest) =&gt; {
+  val genericHttpResponse: scala.concurrent.Future[Any] = {
+    &lt;artifact&gt; val qual$2: akka.pattern.AskableActorRef = akka.pattern.`package`.ask(rootActor);
+    &lt;artifact&gt; val x$12: com.accounts.domain.TransactionRequest = c;
+    &lt;artifact&gt; val x$13: akka.util.Timeout = timeout;
+    &lt;artifact&gt; val x$14: akka.actor.ActorRef = qual$2.?$default$3(x$12);
+    qual$2.?(x$12)(x$13, x$14)
+  };
+  server.this.Directive.addDirectiveApply[(Any,)](akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])))(util.this.ApplyConverter.hac1[Any]).apply(((x0$3: Any) =&gt; x0$3 match {
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse(akka.http.scaladsl.model.StatusCodes.OK, (t @ (_: com.accounts.common.JsonResponse))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse((x @ (_: akka.http.scaladsl.model.StatusCode)), (msg @ (_: String))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+      &lt;artifact&gt; val x$15: akka.http.scaladsl.model.StatusCode = x;
+      &lt;artifact&gt; val x$16: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+      &lt;artifact&gt; val x$17: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+      &lt;artifact&gt; val x$18: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+      akka.http.scaladsl.model.HttpResponse.apply(x$15, x$17, x$16, x$18)
+    })(marshalling.this.Marshaller.fromResponse))
+    case (p @ _) =&gt; {
+      scala.Predef.println(p);
+      akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+    }
+  }))
+}))
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          221
+        </td>
+        <td>
+          2860
+          -
+          2890
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.MarshallingDirectives.entity
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.entity[com.accounts.domain.TransactionRequest](akka.http.scaladsl.server.Directives.as[com.accounts.domain.TransactionRequest](unmarshalling.this.Unmarshaller.messageUnmarshallerFromEntityUnmarshaller[com.accounts.domain.TransactionRequest](com.accounts.marshallers.Json4sMarshaller.unmarshaller[com.accounts.domain.TransactionRequest](scala.reflect.ManifestFactory.classType[com.accounts.domain.TransactionRequest](classOf[com.accounts.domain.TransactionRequest]), com.accounts.marshallers.AccountsMarshaller.serialization, com.accounts.marshallers.AccountsMarshaller.formats))))
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          215
+        </td>
+        <td>
+          2869
+          -
+          2869
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.reflect.ManifestFactory.classType
+        </td>
+        <td style="background: #AEF1AE">
+          scala.reflect.ManifestFactory.classType[com.accounts.domain.TransactionRequest](classOf[com.accounts.domain.TransactionRequest])
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          223
+        </td>
+        <td>
+          2936
+          -
+          2945
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.pattern.AskSupport.ask
+        </td>
+        <td style="background: #AEF1AE">
+          akka.pattern.`package`.ask(rootActor)
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          225
+        </td>
+        <td>
+          2936
+          -
+          2949
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.pattern.AskableActorRef.?
+        </td>
+        <td style="background: #AEF1AE">
+          qual$2.?(x$12)(x$13, x$14)
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          224
+        </td>
+        <td>
+          2946
+          -
+          2946
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.pattern.AskableActorRef.?$default$3
+        </td>
+        <td style="background: #AEF1AE">
+          qual$2.?$default$3(x$12)
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          227
+        </td>
+        <td>
+          2973
+          -
+          2992
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.OnSuccessMagnet.apply
+        </td>
+        <td style="background: #AEF1AE">
+          directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          226
+        </td>
+        <td>
+          2973
+          -
+          2973
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.http.scaladsl.server.util.LowerPriorityTupler.forAnyRef
+        </td>
+        <td style="background: #AEF1AE">
+          util.this.Tupler.forAnyRef[Any]
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          256
+        </td>
+        <td>
+          2963
+          -
+          3489
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Function1.apply
+        </td>
+        <td style="background: #AEF1AE">
+          server.this.Directive.addDirectiveApply[(Any,)](akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])))(util.this.ApplyConverter.hac1[Any]).apply(((x0$3: Any) =&gt; x0$3 match {
+  case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse(akka.http.scaladsl.model.StatusCodes.OK, (t @ (_: com.accounts.common.JsonResponse))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+  case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse((x @ (_: akka.http.scaladsl.model.StatusCode)), (msg @ (_: String))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+    &lt;artifact&gt; val x$15: akka.http.scaladsl.model.StatusCode = x;
+    &lt;artifact&gt; val x$16: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+    &lt;artifact&gt; val x$17: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+    &lt;artifact&gt; val x$18: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+    akka.http.scaladsl.model.HttpResponse.apply(x$15, x$17, x$16, x$18)
+  })(marshalling.this.Marshaller.fromResponse))
+  case (p @ _) =&gt; {
+    scala.Predef.println(p);
+    akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+  }
+}))
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          229
+        </td>
+        <td>
+          2972
+          -
+          2972
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          akka.http.scaladsl.server.util.ApplyConverterInstances.hac1
+        </td>
+        <td style="background: #AEF1AE">
+          util.this.ApplyConverter.hac1[Any]
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          228
+        </td>
+        <td>
+          2963
+          -
+          2993
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.FutureDirectives.onSuccess
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any]))
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          236
+        </td>
+        <td>
+          3101
+          -
+          3141
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
+        </td>
+        <td style="background: #F0ADAD">
+          marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller))
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          235
+        </td>
+        <td>
+          3111
+          -
+          3111
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.LowPriorityToResponseMarshallerImplicits.liftMarshaller
+        </td>
+        <td style="background: #F0ADAD">
+          marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          232
+        </td>
+        <td>
+          3132
+          -
+          3140
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.accounts.common.JsonResponse.toJson
+        </td>
+        <td style="background: #F0ADAD">
+          t.toJson
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          234
+        </td>
+        <td>
+          3111
+          -
+          3111
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.PredefinedToEntityMarshallers.MessageEntityMarshaller
+        </td>
+        <td style="background: #F0ADAD">
+          marshalling.this.Marshaller.MessageEntityMarshaller
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          237
+        </td>
+        <td>
+          3092
+          -
+          3142
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.RouteDirectives.complete
+        </td>
+        <td style="background: #F0ADAD">
+          akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          231
+        </td>
+        <td>
+          3112
+          -
+          3130
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.http.scaladsl.model.ContentType.apply
+        </td>
+        <td style="background: #F0ADAD">
+          model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json)
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          230
+        </td>
+        <td>
+          3112
+          -
+          3130
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.MediaTypes.application/json
+        </td>
+        <td style="background: #F0ADAD">
+          akka.http.scaladsl.model.MediaTypes.application/json
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          233
+        </td>
+        <td>
+          3101
+          -
+          3141
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpEntity.apply
+        </td>
+        <td style="background: #F0ADAD">
+          akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          245
+        </td>
+        <td>
+          3227
+          -
+          3297
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
+        </td>
+        <td style="background: #AEF1AE">
+          marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+  &lt;artifact&gt; val x$15: akka.http.scaladsl.model.StatusCode = x;
+  &lt;artifact&gt; val x$16: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+  &lt;artifact&gt; val x$17: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+  &lt;artifact&gt; val x$18: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+  akka.http.scaladsl.model.HttpResponse.apply(x$15, x$17, x$16, x$18)
+})(marshalling.this.Marshaller.fromResponse)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          244
+        </td>
+        <td>
+          3239
+          -
+          3239
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.PredefinedToResponseMarshallers.fromResponse
+        </td>
+        <td style="background: #AEF1AE">
+          marshalling.this.Marshaller.fromResponse
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          238
+        </td>
+        <td>
+          3272
+          -
+          3290
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.MediaTypes.application/json
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.model.MediaTypes.application/json
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          241
+        </td>
+        <td>
+          3227
+          -
+          3227
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpResponse.apply$default$2
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.model.HttpResponse.apply$default$2
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          240
+        </td>
+        <td>
+          3261
+          -
+          3296
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpEntity.apply
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          243
+        </td>
+        <td>
+          3227
+          -
+          3297
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpResponse.apply
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.model.HttpResponse.apply(x$15, x$17, x$16, x$18)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          246
+        </td>
+        <td>
+          3218
+          -
+          3298
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.RouteDirectives.complete
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+  &lt;artifact&gt; val x$15: akka.http.scaladsl.model.StatusCode = x;
+  &lt;artifact&gt; val x$16: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+  &lt;artifact&gt; val x$17: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+  &lt;artifact&gt; val x$18: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+  akka.http.scaladsl.model.HttpResponse.apply(x$15, x$17, x$16, x$18)
+})(marshalling.this.Marshaller.fromResponse))
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          239
+        </td>
+        <td>
+          3272
+          -
+          3290
+        </td>
+        <td>
+          ApplyImplicitView
+        </td>
+        <td>
+          akka.http.scaladsl.model.ContentType.apply
+        </td>
+        <td style="background: #AEF1AE">
+          model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          242
+        </td>
+        <td>
+          3227
+          -
+          3227
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.HttpResponse.apply$default$4
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.model.HttpResponse.apply$default$4
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          247
+        </td>
+        <td>
+          3346
+          -
+          3356
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Predef.println
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.println(p)
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          254
+        </td>
+        <td>
+          3374
+          -
+          3472
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
+        </td>
+        <td style="background: #AEF1AE">
+          marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller))
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          253
+        </td>
+        <td>
+          3382
+          -
+          3382
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.PredefinedToResponseMarshallers.fromStatusCodeAndValue
+        </td>
+        <td style="background: #AEF1AE">
+          marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          250
+        </td>
+        <td>
+          3374
+          -
+          3472
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Tuple2.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          249
+        </td>
+        <td>
+          3416
+          -
+          3471
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Unknown error occurred. Please contact administrator.&quot;
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          252
+        </td>
+        <td>
+          3382
+          -
+          3382
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.PredefinedToEntityMarshallers.StringMarshaller
+        </td>
+        <td style="background: #AEF1AE">
+          marshalling.this.Marshaller.StringMarshaller
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          255
+        </td>
+        <td>
+          3374
+          -
+          3472
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.RouteDirectives.complete
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          248
+        </td>
+        <td>
+          3383
+          -
+          3414
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.StatusCodes.InternalServerError
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.model.StatusCodes.InternalServerError
+        </td>
+      </tr><tr>
+        <td>
+          85
+        </td>
+        <td>
+          251
+        </td>
+        <td>
+          3382
+          -
+          3382
+        </td>
+        <td>
+          TypeApply
+        </td>
+        <td>
+          scala.Predef.$conforms
+        </td>
+        <td style="background: #AEF1AE">
+          scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError]
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          265
+        </td>
+        <td>
+          2106
+          -
+          3570
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.RouteConcatenation.RouteWithConcatenation.~
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives._enhanceRouteWithConcatenation(akka.http.scaladsl.server.Directives._enhanceRouteWithConcatenation(server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.get).apply(server.this.Directive.addDirectiveApply[(Long,)](akka.http.scaladsl.server.Directives.path[(Long,)](akka.http.scaladsl.server.Directives.LongNumber))(util.this.ApplyConverter.hac1[Long]).apply(((custId: Long) =&gt; {
+  val getAccountsMessage: com.accounts.domain.GetAccountDetailsRequest = com.accounts.domain.GetAccountDetailsRequest.apply(custId);
+  val genericHttpResponse: scala.concurrent.Future[Any] = {
+    &lt;artifact&gt; val qual$1: akka.pattern.AskableActorRef = akka.pattern.`package`.ask(rootActor);
+    &lt;artifact&gt; val x$5: com.accounts.domain.GetAccountDetailsRequest = getAccountsMessage;
+    &lt;artifact&gt; val x$6: akka.util.Timeout = timeout;
+    &lt;artifact&gt; val x$7: akka.actor.ActorRef = qual$1.?$default$3(x$5);
+    qual$1.?(x$5)(x$6, x$7)
+  };
+  server.this.Directive.addDirectiveApply[(Any,)](akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])))(util.this.ApplyConverter.hac1[Any]).apply(((x0$2: Any) =&gt; x0$2 match {
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse(akka.http.scaladsl.model.StatusCodes.OK, (t @ (_: com.accounts.common.JsonResponse))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse((x @ (_: akka.http.scaladsl.model.StatusCode)), (msg @ (_: String))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+      &lt;artifact&gt; val x$8: akka.http.scaladsl.model.StatusCode = x;
+      &lt;artifact&gt; val x$9: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+      &lt;artifact&gt; val x$10: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+      &lt;artifact&gt; val x$11: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+      akka.http.scaladsl.model.HttpResponse.apply(x$8, x$10, x$9, x$11)
+    })(marshalling.this.Marshaller.fromResponse))
+    case (p @ _) =&gt; {
+      scala.Predef.println(p);
+      akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+    }
+  }))
+})))).~(server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.post).apply(server.this.Directive.addByNameNullaryApply(akka.http.scaladsl.server.Directives.pathEnd).apply(server.this.Directive.addDirectiveApply[(com.accounts.domain.TransactionRequest,)](akka.http.scaladsl.server.Directives.entity[com.accounts.domain.TransactionRequest](akka.http.scaladsl.server.Directives.as[com.accounts.domain.TransactionRequest](unmarshalling.this.Unmarshaller.messageUnmarshallerFromEntityUnmarshaller[com.accounts.domain.TransactionRequest](com.accounts.marshallers.Json4sMarshaller.unmarshaller[com.accounts.domain.TransactionRequest](scala.reflect.ManifestFactory.classType[com.accounts.domain.TransactionRequest](classOf[com.accounts.domain.TransactionRequest]), com.accounts.marshallers.AccountsMarshaller.serialization, com.accounts.marshallers.AccountsMarshaller.formats)))))(util.this.ApplyConverter.hac1[com.accounts.domain.TransactionRequest]).apply(((c: com.accounts.domain.TransactionRequest) =&gt; {
+  val genericHttpResponse: scala.concurrent.Future[Any] = {
+    &lt;artifact&gt; val qual$2: akka.pattern.AskableActorRef = akka.pattern.`package`.ask(rootActor);
+    &lt;artifact&gt; val x$12: com.accounts.domain.TransactionRequest = c;
+    &lt;artifact&gt; val x$13: akka.util.Timeout = timeout;
+    &lt;artifact&gt; val x$14: akka.actor.ActorRef = qual$2.?$default$3(x$12);
+    qual$2.?(x$12)(x$13, x$14)
+  };
+  server.this.Directive.addDirectiveApply[(Any,)](akka.http.scaladsl.server.Directives.onSuccess(directives.this.OnSuccessMagnet.apply[Any](genericHttpResponse)(util.this.Tupler.forAnyRef[Any])))(util.this.ApplyConverter.hac1[Any]).apply(((x0$3: Any) =&gt; x0$3 match {
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse(akka.http.scaladsl.model.StatusCodes.OK, (t @ (_: com.accounts.common.JsonResponse))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpEntity.Strict](akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), t.toJson))(marshalling.this.Marshaller.liftMarshaller[akka.http.scaladsl.model.HttpEntity.Strict](marshalling.this.Marshaller.MessageEntityMarshaller)))
+    case (statusCode: akka.http.scaladsl.model.StatusCode, response: Any)com.accounts.domain.GenericHttpResponse((x @ (_: akka.http.scaladsl.model.StatusCode)), (msg @ (_: String))) =&gt; akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.HttpResponse]({
+      &lt;artifact&gt; val x$15: akka.http.scaladsl.model.StatusCode = x;
+      &lt;artifact&gt; val x$16: akka.http.scaladsl.model.HttpEntity.Strict = akka.http.scaladsl.model.HttpEntity.apply(model.this.ContentType.apply(akka.http.scaladsl.model.MediaTypes.application/json), msg);
+      &lt;artifact&gt; val x$17: scala.collection.immutable.Seq[akka.http.scaladsl.model.HttpHeader] = akka.http.scaladsl.model.HttpResponse.apply$default$2;
+      &lt;artifact&gt; val x$18: akka.http.scaladsl.model.HttpProtocol = akka.http.scaladsl.model.HttpResponse.apply$default$4;
+      akka.http.scaladsl.model.HttpResponse.apply(x$15, x$17, x$16, x$18)
+    })(marshalling.this.Marshaller.fromResponse))
+    case (p @ _) =&gt; {
+      scala.Predef.println(p);
+      akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[(akka.http.scaladsl.model.StatusCodes.ServerError, String)](scala.Tuple2.apply[akka.http.scaladsl.model.StatusCodes.ServerError, String](akka.http.scaladsl.model.StatusCodes.InternalServerError, &quot;Unknown error occurred. Please contact administrator.&quot;))(marshalling.this.Marshaller.fromStatusCodeAndValue[akka.http.scaladsl.model.StatusCodes.ServerError, String](scala.Predef.$conforms[akka.http.scaladsl.model.StatusCodes.ServerError], marshalling.this.Marshaller.StringMarshaller)))
+    }
+  }))
+})))))).~(akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.StatusCodes.ClientError](akka.http.scaladsl.model.StatusCodes.MethodNotAllowed)(marshalling.this.Marshaller.fromStatusCode)))
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          262
+        </td>
+        <td>
+          3553
+          -
+          3553
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.PredefinedToResponseMarshallers.fromStatusCode
+        </td>
+        <td style="background: #F0ADAD">
+          marshalling.this.Marshaller.fromStatusCode
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          261
+        </td>
+        <td>
+          3541
+          -
+          3569
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          akka.http.scaladsl.model.StatusCodes.MethodNotAllowed
+        </td>
+        <td style="background: #F0ADAD">
+          akka.http.scaladsl.model.StatusCodes.MethodNotAllowed
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          264
+        </td>
+        <td>
+          3532
+          -
+          3570
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          akka.http.scaladsl.server.directives.RouteDirectives.complete
+        </td>
+        <td style="background: #AEF1AE">
+          akka.http.scaladsl.server.Directives.complete(marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.StatusCodes.ClientError](akka.http.scaladsl.model.StatusCodes.MethodNotAllowed)(marshalling.this.Marshaller.fromStatusCode))
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          263
+        </td>
+        <td>
+          3541
+          -
+          3569
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
+        </td>
+        <td style="background: #F0ADAD">
+          marshalling.this.ToResponseMarshallable.apply[akka.http.scaladsl.model.StatusCodes.ClientError](akka.http.scaladsl.model.StatusCodes.MethodNotAllowed)(marshalling.this.Marshaller.fromStatusCode)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

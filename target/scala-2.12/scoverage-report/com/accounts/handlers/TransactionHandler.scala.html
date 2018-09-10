@@ -1,0 +1,171 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          com\accounts\handlers\TransactionHandler.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package com.accounts.handlers
+</span>2 <span style=''>
+</span>3 <span style=''>import akka.http.scaladsl.model.StatusCodes
+</span>4 <span style=''>import com.accounts.context.ResourceContext
+</span>5 <span style=''>import com.accounts.domain._
+</span>6 <span style=''>
+</span>7 <span style=''>import scala.concurrent.{ExecutionContext, Future}
+</span>8 <span style=''>import scala.util.{Failure, Success, Try}
+</span>9 <span style=''>
+</span>10 <span style=''>
+</span>11 <span style=''>object TransactionHandler {
+</span>12 <span style=''>
+</span>13 <span style=''>  def createTransaction(transactionRequest: TransactionRequest)(implicit ec:ExecutionContext, rc:ResourceContext): Future[GenericHttpResponse] = {
+</span>14 <span style=''>    implicit val sc= </span><span style='background: #AEF1AE'>rc.sc</span><span style=''>
+</span>15 <span style=''>    </span><span style='background: #AEF1AE'>Future {
+</span>16 <span style=''></span><span style='background: #AEF1AE'>      Try(rc.db.createTransaction(transactionRequest)) match {
+</span>17 <span style=''></span><span style='background: #AEF1AE'>        case Success(tx:Long)=&gt; GenericHttpResponse(StatusCodes.OK,TransactionResponse(tx))
+</span>18 <span style=''></span><span style='background: #AEF1AE'>        case Failure(ex)=&gt; GenericHttpResponse(StatusCodes.InternalServerError,ex.getMessage)
+</span>19 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>20 <span style=''></span><span style='background: #AEF1AE'>}</span><span style=''>
+</span>21 <span style=''>
+</span>22 <span style=''>  }
+</span>23 <span style=''>
+</span>24 <span style=''>  def getAccountAndTransactions(accountNo:Long)(implicit ec:ExecutionContext, rc:ResourceContext):Future[GenericHttpResponse]={
+</span>25 <span style=''>  implicit val sc= </span><span style='background: #AEF1AE'>rc.sc</span><span style=''>
+</span>26 <span style=''>    </span><span style='background: #AEF1AE'>Future{
+</span>27 <span style=''></span><span style='background: #AEF1AE'>    rc.db.checkAccountNoExist(accountNo) match {
+</span>28 <span style=''></span><span style='background: #AEF1AE'>      case true=&gt; rc.db.getAccountDetailsWithTransactions(accountNo) match {
+</span>29 <span style=''></span><span style='background: #AEF1AE'>        case Some(accntInfo)=&gt;
+</span>30 <span style=''></span><span style='background: #AEF1AE'>          GenericHttpResponse(StatusCodes.OK,accntInfo)
+</span>31 <span style=''></span><span style='background: #AEF1AE'>        case None=&gt; GenericHttpResponse(StatusCodes.NotFound,s&quot;Account Information not found for $accountNo&quot;)
+</span>32 <span style=''></span><span style='background: #AEF1AE'>      }
+</span>33 <span style=''></span><span style='background: #AEF1AE'>      case false=&gt; GenericHttpResponse(StatusCodes.NotFound,s&quot;Account Information not found for $accountNo&quot;)
+</span>34 <span style=''></span><span style='background: #AEF1AE'>    }
+</span>35 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span>36 <span style=''>  }
+</span>37 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          103
+        </td>
+        <td>
+          454
+          -
+          459
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.accounts.context.ResourceContext.sc
+        </td>
+        <td style="background: #AEF1AE">
+          rc.sc
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          104
+        </td>
+        <td>
+          465
+          -
+          737
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.apply[com.accounts.domain.GenericHttpResponse](scala.util.Try.apply[Long](rc.db.createTransaction(transactionRequest)) match {
+  case (value: Long)scala.util.Success[Long]((tx @ (_: Long))) =&gt; com.accounts.domain.GenericHttpResponse.apply(akka.http.scaladsl.model.StatusCodes.OK, com.accounts.domain.TransactionResponse.apply(tx))
+  case (exception: Throwable)scala.util.Failure[Long]((ex @ _)) =&gt; com.accounts.domain.GenericHttpResponse.apply(akka.http.scaladsl.model.StatusCodes.InternalServerError, ex.getMessage())
+})(ec)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          105
+        </td>
+        <td>
+          896
+          -
+          901
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          com.accounts.context.ResourceContext.sc
+        </td>
+        <td style="background: #AEF1AE">
+          rc.sc
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          106
+        </td>
+        <td>
+          907
+          -
+          1375
+        </td>
+        <td>
+          ApplyToImplicitArgs
+        </td>
+        <td>
+          scala.concurrent.Future.apply
+        </td>
+        <td style="background: #AEF1AE">
+          scala.concurrent.Future.apply[com.accounts.domain.GenericHttpResponse](rc.db.checkAccountNoExist(accountNo) match {
+  case true =&gt; rc.db.getAccountDetailsWithTransactions(accountNo) match {
+    case (value: com.accounts.domain.AccountDetailsWithTransactions)Some[com.accounts.domain.AccountDetailsWithTransactions]((accntInfo @ _)) =&gt; com.accounts.domain.GenericHttpResponse.apply(akka.http.scaladsl.model.StatusCodes.OK, accntInfo)
+    case scala.None =&gt; com.accounts.domain.GenericHttpResponse.apply(akka.http.scaladsl.model.StatusCodes.NotFound, scala.StringContext.apply(&quot;Account Information not found for &quot;, &quot;&quot;).s(accountNo))
+  }
+  case false =&gt; com.accounts.domain.GenericHttpResponse.apply(akka.http.scaladsl.model.StatusCodes.NotFound, scala.StringContext.apply(&quot;Account Information not found for &quot;, &quot;&quot;).s(accountNo))
+})(ec)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

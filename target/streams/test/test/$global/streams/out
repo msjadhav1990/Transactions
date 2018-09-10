@@ -1,0 +1,19 @@
+[0m[[0mdebug[0m] [0mRunning TaskDef(com.accounts.routes.AccountsRoutesTests, org.scalatest.tools.Framework$$anon$1@67725970, false, [SuiteSelector])[0m
+[0m[[0mdebug[0m] [0mRunning TaskDef(com.accounts.config.ServiceConfigurationTests, org.scalatest.tools.Framework$$anon$1@67725970, false, [SuiteSelector])[0m
+[0m[[0mdebug[0m] [0mRunning TaskDef(com.accounts.actors.AccountsActorTests, org.scalatest.tools.Framework$$anon$1@67725970, false, [SuiteSelector])[0m
+[0m[[0mdebug[0m] [0mRunning TaskDef(com.accounts.storage.TransactionInfoDatabaseTests, org.scalatest.tools.Framework$$anon$1@67725970, false, [SuiteSelector])[0m
+[0m[[0mdebug[0m] [0mRunning TaskDef(com.accounts.handlers.TransactionHandlerTests, org.scalatest.tools.Framework$$anon$1@67725970, false, [SuiteSelector])[0m
+[0m[[0mdebug[0m] [0mSummary for ScalaCheck not available.[0m
+[0m[[0minfo[0m] [0mScalaTest[0m
+[0m[[0minfo[0m] [0m[36mRun completed in 2 seconds, 821 milliseconds.[0m[0m
+[0m[[0minfo[0m] [0m[36mTotal number of tests run: 25[0m[0m
+[0m[[0minfo[0m] [0m[36mSuites: completed 5, aborted 0[0m[0m
+[0m[[0minfo[0m] [0m[36mTests: succeeded 25, failed 0, canceled 0, ignored 0, pending 0[0m[0m
+[0m[[0minfo[0m] [0m[32mAll tests passed.[0m[0m
+[0m[[0minfo[0m] [0mPassed: Total 25, Failed 0, Errors 0, Passed 25[0m
+[0m[[0mdebug[0m] [0mPassed tests:[0m
+[0m[[0mdebug[0m] [0m	com.accounts.config.ServiceConfigurationTests[0m
+[0m[[0mdebug[0m] [0m	com.accounts.handlers.TransactionHandlerTests[0m
+[0m[[0mdebug[0m] [0m	com.accounts.actors.AccountsActorTests[0m
+[0m[[0mdebug[0m] [0m	com.accounts.routes.AccountsRoutesTests[0m
+[0m[[0mdebug[0m] [0m	com.accounts.storage.TransactionInfoDatabaseTests[0m

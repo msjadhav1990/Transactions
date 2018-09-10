@@ -1,0 +1,7 @@
+#Successful Tests
+#Sat Sep 08 19:13:18 IST 2018
+com.accounts.routes.AccountsRoutesTests=1536414198319
+com.accounts.config.ServiceConfigurationTests=1536414196423
+com.accounts.actors.AccountsActorTests=1536414197116
+com.accounts.storage.TransactionInfoDatabaseTests=1536414196533
+com.accounts.handlers.TransactionHandlerTests=1536414196710

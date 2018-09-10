@@ -1,0 +1,983 @@
+<?xml version="1.0"?>
+<!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
+<coverage 
+line-rate="0.67" lines-valid="316" lines-covered="211" branches-valid="3" branches-covered="3" branch-rate="1.00" complexity="0" version="1.0" timestamp="1536414200209">
+    <sources>
+        <source>--source</source>
+        <source>D:/NOTBACKEDUP/exp/bank/Transactions/src/main/scala</source>
+    </sources>
+    <packages>
+        <package name="&lt;empty&gt;" line-rate="0.00" branch-rate="0.00" complexity="0">
+            <classes>
+                <class 
+                name="AccountsServiceApp" filename="AccountsServiceApp.scala" line-rate="0.00" branch-rate="0.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="&lt;empty&gt;/AccountsServiceApp/start" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                            <lines>
+                                <line number="23" hits="0" branch="false"/>
+                                <line number="18" hits="0" branch="false"/>
+                                <line number="21" hits="0" branch="false"/>
+                                <line number="20" hits="0" branch="false"/>
+                                <line number="21" hits="0" branch="false"/>
+                                <line number="17" hits="0" branch="false"/>
+                                <line number="19" hits="0" branch="false"/>
+                                <line number="21" hits="0" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="23" hits="0" branch="false"/>
+                        <line number="18" hits="0" branch="false"/>
+                        <line number="21" hits="0" branch="false"/>
+                        <line number="20" hits="0" branch="false"/>
+                        <line number="21" hits="0" branch="false"/>
+                        <line number="17" hits="0" branch="false"/>
+                        <line number="19" hits="0" branch="false"/>
+                        <line number="21" hits="0" branch="false"/>
+                    </lines>
+</class>
+                <class name="Application" filename="Application.scala" line-rate="0.00" branch-rate="0.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="&lt;empty&gt;/Application/&lt;none&gt;" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                            <lines>
+                                <line number="22" hits="0" branch="false"/>
+                                <line number="18" hits="0" branch="false"/>
+                                <line number="25" hits="0" branch="false"/>
+                                <line number="16" hits="0" branch="false"/>
+                                <line number="19" hits="0" branch="false"/>
+                                <line number="18" hits="0" branch="false"/>
+                                <line number="17" hits="0" branch="false"/>
+                                <line number="21" hits="0" branch="false"/>
+                                <line number="18" hits="0" branch="false"/>
+                                <line number="22" hits="0" branch="false"/>
+                                <line number="12" hits="0" branch="false"/>
+                                <line number="19" hits="0" branch="false"/>
+                                <line number="19" hits="0" branch="false"/>
+                                <line number="19" hits="0" branch="false"/>
+                                <line number="11" hits="0" branch="false"/>
+                                <line number="19" hits="0" branch="false"/>
+                                <line number="21" hits="0" branch="false"/>
+                                <line number="16" hits="0" branch="false"/>
+                                <line number="18" hits="0" branch="false"/>
+                                <line number="22" hits="0" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="22" hits="0" branch="false"/>
+                        <line number="18" hits="0" branch="false"/>
+                        <line number="25" hits="0" branch="false"/>
+                        <line number="16" hits="0" branch="false"/>
+                        <line number="19" hits="0" branch="false"/>
+                        <line number="18" hits="0" branch="false"/>
+                        <line number="17" hits="0" branch="false"/>
+                        <line number="21" hits="0" branch="false"/>
+                        <line number="18" hits="0" branch="false"/>
+                        <line number="22" hits="0" branch="false"/>
+                        <line number="12" hits="0" branch="false"/>
+                        <line number="19" hits="0" branch="false"/>
+                        <line number="19" hits="0" branch="false"/>
+                        <line number="19" hits="0" branch="false"/>
+                        <line number="11" hits="0" branch="false"/>
+                        <line number="19" hits="0" branch="false"/>
+                        <line number="21" hits="0" branch="false"/>
+                        <line number="16" hits="0" branch="false"/>
+                        <line number="18" hits="0" branch="false"/>
+                        <line number="22" hits="0" branch="false"/>
+                    </lines>
+                </class>
+            </classes>
+        </package>
+        <package name="com.accounts.actors" line-rate="0.41" branch-rate="1.00" complexity="0">
+            <classes>
+                <class 
+                name="com.accounts.actors.RouterActor" filename="com/accounts/actors/RouterActor.scala" line-rate="0.00" branch-rate="0.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.actors/RouterActor/receive" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                            <lines>
+                                <line number="14" hits="0" branch="false"/>
+                                <line number="15" hits="0" branch="false"/>
+                                <line number="14" hits="0" branch="false"/>
+                                <line number="14" hits="0" branch="false"/>
+                                <line number="14" hits="0" branch="false"/>
+                                <line number="16" hits="0" branch="false"/>
+                                <line number="16" hits="0" branch="false"/>
+                                <line number="12" hits="0" branch="false"/>
+                                <line number="14" hits="0" branch="false"/>
+                                <line number="14" hits="0" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.actors/RouterActor/&lt;none&gt;" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                            <lines>
+                                <line number="11" hits="0" branch="false"/>
+                                <line number="11" hits="0" branch="false"/>
+                                <line number="23" hits="0" branch="false"/>
+                                <line number="11" hits="0" branch="false"/>
+                                <line number="11" hits="0" branch="false"/>
+                                <line number="11" hits="0" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.actors/RouterActor/props" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                            <lines>
+                                <line number="24" hits="0" branch="false"/>
+                                <line number="24" hits="0" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.actors/RouterActor/resolveFromCache" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                            <lines>
+                                <line number="38" hits="0" branch="false"/>
+                                <line number="34" hits="0" branch="false"/>
+                                <line number="37" hits="0" branch="false"/>
+                                <line number="36" hits="0" branch="false"/>
+                                <line number="37" hits="0" branch="false"/>
+                                <line number="33" hits="0" branch="false"/>
+                                <line number="36" hits="0" branch="false"/>
+                                <line number="37" hits="0" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.actors/RouterActor/defaultResolver" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                            <lines>
+                                <line number="28" hits="0" branch="false"/>
+                                <line number="27" hits="0" branch="false"/>
+                                <line number="29" hits="0" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="38" hits="0" branch="false"/>
+                        <line number="11" hits="0" branch="false"/>
+                        <line number="14" hits="0" branch="false"/>
+                        <line number="28" hits="0" branch="false"/>
+                        <line number="11" hits="0" branch="false"/>
+                        <line number="15" hits="0" branch="false"/>
+                        <line number="34" hits="0" branch="false"/>
+                        <line number="37" hits="0" branch="false"/>
+                        <line number="14" hits="0" branch="false"/>
+                        <line number="24" hits="0" branch="false"/>
+                        <line number="23" hits="0" branch="false"/>
+                        <line number="14" hits="0" branch="false"/>
+                        <line number="36" hits="0" branch="false"/>
+                        <line number="27" hits="0" branch="false"/>
+                        <line number="14" hits="0" branch="false"/>
+                        <line number="11" hits="0" branch="false"/>
+                        <line number="37" hits="0" branch="false"/>
+                        <line number="33" hits="0" branch="false"/>
+                        <line number="11" hits="0" branch="false"/>
+                        <line number="16" hits="0" branch="false"/>
+                        <line number="16" hits="0" branch="false"/>
+                        <line number="29" hits="0" branch="false"/>
+                        <line number="12" hits="0" branch="false"/>
+                        <line number="14" hits="0" branch="false"/>
+                        <line number="36" hits="0" branch="false"/>
+                        <line number="14" hits="0" branch="false"/>
+                        <line number="37" hits="0" branch="false"/>
+                        <line number="24" hits="0" branch="false"/>
+                        <line number="11" hits="0" branch="false"/>
+                    </lines>
+</class>
+                <class 
+                name="com.accounts.actors.AccountsActor" filename="com/accounts/actors/AccountsActor.scala" line-rate="1.00" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.actors/AccountsActor/props" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="29" hits="1" branch="false"/>
+                                <line number="29" hits="1" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.actors/AccountsActor/receive" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="17" hits="1" branch="false"/>
+                                <line number="22" hits="1" branch="false"/>
+                                <line number="16" hits="1" branch="false"/>
+                                <line number="21" hits="1" branch="false"/>
+                                <line number="21" hits="1" branch="false"/>
+                                <line number="15" hits="1" branch="false"/>
+                                <line number="13" hits="1" branch="false"/>
+                                <line number="21" hits="1" branch="false"/>
+                                <line number="16" hits="1" branch="false"/>
+                                <line number="21" hits="1" branch="false"/>
+                                <line number="16" hits="1" branch="false"/>
+                                <line number="20" hits="1" branch="false"/>
+                                <line number="21" hits="1" branch="false"/>
+                                <line number="16" hits="1" branch="false"/>
+                                <line number="16" hits="1" branch="false"/>
+                                <line number="21" hits="1" branch="false"/>
+                                <line number="22" hits="1" branch="false"/>
+                                <line number="17" hits="1" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="17" hits="1" branch="false"/>
+                        <line number="22" hits="1" branch="false"/>
+                        <line number="16" hits="1" branch="false"/>
+                        <line number="21" hits="1" branch="false"/>
+                        <line number="21" hits="1" branch="false"/>
+                        <line number="15" hits="1" branch="false"/>
+                        <line number="29" hits="1" branch="false"/>
+                        <line number="13" hits="1" branch="false"/>
+                        <line number="21" hits="1" branch="false"/>
+                        <line number="16" hits="1" branch="false"/>
+                        <line number="21" hits="1" branch="false"/>
+                        <line number="16" hits="1" branch="false"/>
+                        <line number="20" hits="1" branch="false"/>
+                        <line number="21" hits="1" branch="false"/>
+                        <line number="16" hits="1" branch="false"/>
+                        <line number="29" hits="1" branch="false"/>
+                        <line number="16" hits="1" branch="false"/>
+                        <line number="21" hits="1" branch="false"/>
+                        <line number="22" hits="1" branch="false"/>
+                        <line number="17" hits="1" branch="false"/>
+                    </lines>
+</class>
+            </classes>
+        </package>
+        <package name="com.accounts.config" line-rate="1.00" branch-rate="1.00" complexity="0">
+            <classes>
+                <class 
+                name="com.accounts.config.HttpConfiguration" filename="com/accounts/config/ServiceConfiguration.scala" line-rate="1.00" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.config/HttpConfiguration/apply" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="11" hits="1" branch="false"/>
+                                <line number="10" hits="1" branch="false"/>
+                                <line number="11" hits="1" branch="false"/>
+                                <line number="9" hits="1" branch="false"/>
+                                <line number="9" hits="1" branch="false"/>
+                                <line number="10" hits="1" branch="false"/>
+                                <line number="8" hits="1" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="11" hits="1" branch="false"/>
+                        <line number="10" hits="1" branch="false"/>
+                        <line number="11" hits="1" branch="false"/>
+                        <line number="9" hits="1" branch="false"/>
+                        <line number="9" hits="1" branch="false"/>
+                        <line number="10" hits="1" branch="false"/>
+                        <line number="8" hits="1" branch="false"/>
+                    </lines>
+</class>
+                <class 
+                name="com.accounts.config.ServiceConfiguration" filename="com/accounts/config/ServiceConfiguration.scala" line-rate="1.00" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.config/ServiceConfiguration/apply" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="16" hits="1" branch="false"/>
+                                <line number="16" hits="1" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="16" hits="1" branch="false"/>
+                        <line number="16" hits="1" branch="false"/>
+                    </lines>
+</class>
+            </classes>
+        </package>
+        <package name="com.accounts.domain" line-rate="0.62" branch-rate="1.00" complexity="0">
+            <classes>
+                <class 
+                name="com.accounts.domain.TransactionDetails" filename="com/accounts/domain/TransactionDetails.scala" line-rate="0.50" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.domain/TransactionDetails/toJson" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                            <lines>
+                                <line number="11" hits="0" branch="false"/>
+                                <line number="11" hits="0" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.domain/TransactionDetails/&lt;none&gt;" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="10" hits="1" branch="false"/>
+                                <line number="10" hits="1" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="10" hits="1" branch="false"/>
+                        <line number="10" hits="1" branch="false"/>
+                        <line number="11" hits="0" branch="false"/>
+                        <line number="11" hits="0" branch="false"/>
+                    </lines>
+</class>
+                <class 
+                name="com.accounts.domain.AccountDetailsWithTransactions" filename="com/accounts/domain/AccountDetailsWithTransactions.scala" line-rate="0.50" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.domain/AccountDetailsWithTransactions/toJson" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                            <lines>
+                                <line number="13" hits="0" branch="false"/>
+                                <line number="13" hits="0" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.domain/AccountDetailsWithTransactions/&lt;none&gt;" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="12" hits="1" branch="false"/>
+                                <line number="12" hits="1" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="13" hits="0" branch="false"/>
+                        <line number="12" hits="1" branch="false"/>
+                        <line number="12" hits="1" branch="false"/>
+                        <line number="13" hits="0" branch="false"/>
+                    </lines>
+</class>
+                <class 
+                name="com.accounts.domain.TransactionRequest" filename="com/accounts/domain/TransactionRequest.scala" line-rate="1.00" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.domain/TransactionRequest/toJson" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="10" hits="1" branch="false"/>
+                                <line number="10" hits="1" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.domain/TransactionRequest/&lt;none&gt;" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="9" hits="1" branch="false"/>
+                                <line number="9" hits="1" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="9" hits="1" branch="false"/>
+                        <line number="10" hits="1" branch="false"/>
+                        <line number="10" hits="1" branch="false"/>
+                        <line number="9" hits="1" branch="false"/>
+                    </lines>
+</class>
+                <class 
+                name="com.accounts.domain.TransactionResponse" filename="com/accounts/domain/TransactionResponse.scala" line-rate="0.50" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.domain/TransactionResponse/toJson" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                            <lines>
+                                <line number="10" hits="0" branch="false"/>
+                                <line number="10" hits="0" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.domain/TransactionResponse/&lt;none&gt;" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="9" hits="1" branch="false"/>
+                                <line number="9" hits="1" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="10" hits="0" branch="false"/>
+                        <line number="9" hits="1" branch="false"/>
+                        <line number="9" hits="1" branch="false"/>
+                        <line number="10" hits="0" branch="false"/>
+                    </lines>
+</class>
+            </classes>
+        </package>
+        <package name="com.accounts.handlers" line-rate="1.00" branch-rate="1.00" complexity="0">
+            <classes>
+                <class 
+                name="com.accounts.handlers.TransactionHandler" filename="com/accounts/handlers/TransactionHandler.scala" line-rate="1.00" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.handlers/TransactionHandler/getAccountAndTransactions" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="26" hits="1" branch="false"/>
+                                <line number="25" hits="1" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.handlers/TransactionHandler/createTransaction" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="15" hits="1" branch="false"/>
+                                <line number="14" hits="1" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="15" hits="1" branch="false"/>
+                        <line number="26" hits="1" branch="false"/>
+                        <line number="14" hits="1" branch="false"/>
+                        <line number="25" hits="1" branch="false"/>
+                    </lines>
+</class>
+            </classes>
+        </package>
+        <package name="com.accounts.marshallers" line-rate="0.68" branch-rate="1.00" complexity="0">
+            <classes>
+                <class 
+                name="com.accounts.marshallers.Json4sMarshaller" filename="com/accounts/marshallers/Json4sMarshaller.scala" line-rate="0.83" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.marshallers/Json4sMarshaller/unmarshaller" signature="()V" line-rate="0.83" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="17" hits="1" branch="false"/>
+                                <line number="18" hits="1" branch="false"/>
+                                <line number="20" hits="1" branch="false"/>
+                                <line number="19" hits="1" branch="false"/>
+                                <line number="22" hits="1" branch="false"/>
+                                <line number="17" hits="1" branch="false"/>
+                                <line number="26" hits="0" branch="false"/>
+                                <line number="20" hits="1" branch="false"/>
+                                <line number="17" hits="1" branch="false"/>
+                                <line number="21" hits="1" branch="false"/>
+                                <line number="25" hits="0" branch="false"/>
+                                <line number="16" hits="1" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="17" hits="1" branch="false"/>
+                        <line number="18" hits="1" branch="false"/>
+                        <line number="20" hits="1" branch="false"/>
+                        <line number="19" hits="1" branch="false"/>
+                        <line number="22" hits="1" branch="false"/>
+                        <line number="17" hits="1" branch="false"/>
+                        <line number="26" hits="0" branch="false"/>
+                        <line number="20" hits="1" branch="false"/>
+                        <line number="17" hits="1" branch="false"/>
+                        <line number="21" hits="1" branch="false"/>
+                        <line number="25" hits="0" branch="false"/>
+                        <line number="16" hits="1" branch="false"/>
+                    </lines>
+</class>
+                <class 
+                name="com.accounts.marshallers.BaseMarshaller" filename="com/accounts/marshallers/BaseMarshaller.scala" line-rate="0.17" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.marshallers/BaseMarshaller/&lt;none&gt;" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="8" hits="1" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.marshallers/BaseMarshaller/resolveEntity" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                            <lines>
+                                <line number="16" hits="0" branch="false"/>
+                                <line number="21" hits="0" branch="false"/>
+                                <line number="19" hits="0" branch="false"/>
+                                <line number="16" hits="0" branch="false"/>
+                                <line number="15" hits="0" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="16" hits="0" branch="false"/>
+                        <line number="21" hits="0" branch="false"/>
+                        <line number="19" hits="0" branch="false"/>
+                        <line number="16" hits="0" branch="false"/>
+                        <line number="15" hits="0" branch="false"/>
+                        <line number="8" hits="1" branch="false"/>
+                    </lines>
+</class>
+                <class 
+                name="com.accounts.marshallers.AccountsMarshaller" filename="com/accounts/marshallers/AccountsMarshaller.scala" line-rate="1.00" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.marshallers/AccountsMarshaller/&lt;none&gt;" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="10" hits="1" branch="false"/>
+                                <line number="10" hits="1" branch="false"/>
+                                <line number="10" hits="1" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.marshallers/AccountsMarshaller/classList" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="8" hits="1" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="10" hits="1" branch="false"/>
+                        <line number="8" hits="1" branch="false"/>
+                        <line number="10" hits="1" branch="false"/>
+                        <line number="10" hits="1" branch="false"/>
+                    </lines>
+</class>
+            </classes>
+        </package>
+        <package name="com.accounts.routes" line-rate="0.75" branch-rate="1.00" complexity="0">
+            <classes>
+                <class 
+                name="com.accounts.routes.AccountsRoutes" filename="com/accounts/routes/AccountsRoutes.scala" line-rate="0.58" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.routes/AccountsRoutes/apiRoutes" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="36" hits="1" branch="false"/>
+                                <line number="37" hits="1" branch="false"/>
+                                <line number="35" hits="1" branch="false"/>
+                                <line number="35" hits="1" branch="false"/>
+                                <line number="35" hits="1" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.routes/AccountsRoutes/routes" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="31" hits="1" branch="false"/>
+                                <line number="31" hits="1" branch="false"/>
+                                <line number="31" hits="1" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.routes/AccountsRoutes/exceptionHandler" signature="()V" line-rate="0.12" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="25" hits="0" branch="false"/>
+                                <line number="24" hits="0" branch="false"/>
+                                <line number="25" hits="0" branch="false"/>
+                                <line number="25" hits="0" branch="false"/>
+                                <line number="25" hits="0" branch="false"/>
+                                <line number="25" hits="0" branch="false"/>
+                                <line number="25" hits="0" branch="false"/>
+                                <line number="21" hits="1" branch="false"/>
+                                <line number="25" hits="0" branch="false"/>
+                                <line number="24" hits="0" branch="false"/>
+                                <line number="23" hits="0" branch="false"/>
+                                <line number="25" hits="0" branch="false"/>
+                                <line number="25" hits="0" branch="false"/>
+                                <line number="25" hits="0" branch="false"/>
+                                <line number="21" hits="1" branch="false"/>
+                                <line number="25" hits="0" branch="false"/>
+                                <line number="24" hits="0" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.routes/AccountsRoutes/toLogEntry" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="44" hits="1" branch="false"/>
+                                <line number="43" hits="1" branch="false"/>
+                                <line number="43" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="43" hits="1" branch="false"/>
+                                <line number="43" hits="1" branch="false"/>
+                                <line number="44" hits="1" branch="false"/>
+                                <line number="44" hits="1" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.routes/AccountsRoutes/&lt;none&gt;" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="29" hits="1" branch="false"/>
+                                <line number="29" hits="1" branch="false"/>
+                                <line number="29" hits="1" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="25" hits="0" branch="false"/>
+                        <line number="29" hits="1" branch="false"/>
+                        <line number="36" hits="1" branch="false"/>
+                        <line number="44" hits="1" branch="false"/>
+                        <line number="24" hits="0" branch="false"/>
+                        <line number="43" hits="1" branch="false"/>
+                        <line number="25" hits="0" branch="false"/>
+                        <line number="31" hits="1" branch="false"/>
+                        <line number="25" hits="0" branch="false"/>
+                        <line number="25" hits="0" branch="false"/>
+                        <line number="31" hits="1" branch="false"/>
+                        <line number="25" hits="0" branch="false"/>
+                        <line number="43" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="25" hits="0" branch="false"/>
+                        <line number="21" hits="1" branch="false"/>
+                        <line number="37" hits="1" branch="false"/>
+                        <line number="25" hits="0" branch="false"/>
+                        <line number="24" hits="0" branch="false"/>
+                        <line number="29" hits="1" branch="false"/>
+                        <line number="43" hits="1" branch="false"/>
+                        <line number="29" hits="1" branch="false"/>
+                        <line number="35" hits="1" branch="false"/>
+                        <line number="23" hits="0" branch="false"/>
+                        <line number="25" hits="0" branch="false"/>
+                        <line number="31" hits="1" branch="false"/>
+                        <line number="43" hits="1" branch="false"/>
+                        <line number="25" hits="0" branch="false"/>
+                        <line number="25" hits="0" branch="false"/>
+                        <line number="21" hits="1" branch="false"/>
+                        <line number="35" hits="1" branch="false"/>
+                        <line number="44" hits="1" branch="false"/>
+                        <line number="25" hits="0" branch="false"/>
+                        <line number="35" hits="1" branch="false"/>
+                        <line number="24" hits="0" branch="false"/>
+                        <line number="44" hits="1" branch="false"/>
+                    </lines>
+</class>
+                <class 
+                name="com.accounts.routes.AccountsOperationRoute" filename="com/accounts/routes/AccountsRoutes.scala" line-rate="0.81" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.routes/AccountsOperationRoute/route" signature="()V" line-rate="0.81" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="77" hits="1" branch="false"/>
+                                <line number="79" hits="1" branch="false"/>
+                                <line number="66" hits="1" branch="false"/>
+                                <line number="59" hits="1" branch="false"/>
+                                <line number="69" hits="1" branch="false"/>
+                                <line number="63" hits="1" branch="false"/>
+                                <line number="85" hits="1" branch="false"/>
+                                <line number="65" hits="0" branch="false"/>
+                                <line number="82" hits="1" branch="false"/>
+                                <line number="81" hits="0" branch="false"/>
+                                <line number="66" hits="1" branch="false"/>
+                                <line number="61" hits="1" branch="false"/>
+                                <line number="65" hits="0" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="90" hits="0" branch="false"/>
+                                <line number="82" hits="1" branch="false"/>
+                                <line number="79" hits="1" branch="false"/>
+                                <line number="85" hits="1" branch="false"/>
+                                <line number="81" hits="0" branch="false"/>
+                                <line number="65" hits="0" branch="false"/>
+                                <line number="66" hits="1" branch="false"/>
+                                <line number="89" hits="1" branch="false"/>
+                                <line number="59" hits="1" branch="false"/>
+                                <line number="79" hits="1" branch="false"/>
+                                <line number="59" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="84" hits="1" branch="false"/>
+                                <line number="77" hits="1" branch="false"/>
+                                <line number="69" hits="1" branch="false"/>
+                                <line number="79" hits="1" branch="false"/>
+                                <line number="82" hits="1" branch="false"/>
+                                <line number="85" hits="1" branch="false"/>
+                                <line number="78" hits="1" branch="false"/>
+                                <line number="75" hits="1" branch="false"/>
+                                <line number="81" hits="0" branch="false"/>
+                                <line number="69" hits="1" branch="false"/>
+                                <line number="76" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="62" hits="1" branch="false"/>
+                                <line number="65" hits="0" branch="false"/>
+                                <line number="66" hits="1" branch="false"/>
+                                <line number="82" hits="1" branch="false"/>
+                                <line number="63" hits="1" branch="false"/>
+                                <line number="58" hits="1" branch="false"/>
+                                <line number="66" hits="1" branch="false"/>
+                                <line number="69" hits="1" branch="false"/>
+                                <line number="77" hits="1" branch="false"/>
+                                <line number="65" hits="0" branch="false"/>
+                                <line number="85" hits="1" branch="false"/>
+                                <line number="76" hits="1" branch="false"/>
+                                <line number="82" hits="1" branch="false"/>
+                                <line number="65" hits="0" branch="false"/>
+                                <line number="78" hits="1" branch="false"/>
+                                <line number="63" hits="1" branch="false"/>
+                                <line number="69" hits="1" branch="false"/>
+                                <line number="77" hits="1" branch="false"/>
+                                <line number="66" hits="1" branch="false"/>
+                                <line number="85" hits="1" branch="false"/>
+                                <line number="81" hits="0" branch="false"/>
+                                <line number="90" hits="0" branch="false"/>
+                                <line number="82" hits="1" branch="false"/>
+                                <line number="59" hits="1" branch="false"/>
+                                <line number="63" hits="1" branch="false"/>
+                                <line number="79" hits="1" branch="false"/>
+                                <line number="85" hits="1" branch="false"/>
+                                <line number="90" hits="1" branch="false"/>
+                                <line number="63" hits="1" branch="false"/>
+                                <line number="77" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="81" hits="0" branch="false"/>
+                                <line number="82" hits="1" branch="false"/>
+                                <line number="66" hits="1" branch="false"/>
+                                <line number="68" hits="1" branch="false"/>
+                                <line number="65" hits="0" branch="false"/>
+                                <line number="75" hits="1" branch="false"/>
+                                <line number="77" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="62" hits="1" branch="false"/>
+                                <line number="66" hits="1" branch="false"/>
+                                <line number="69" hits="1" branch="false"/>
+                                <line number="81" hits="0" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="90" hits="0" branch="false"/>
+                                <line number="81" hits="0" branch="false"/>
+                                <line number="77" hits="1" branch="false"/>
+                                <line number="77" hits="1" branch="false"/>
+                                <line number="85" hits="1" branch="false"/>
+                                <line number="69" hits="1" branch="false"/>
+                                <line number="58" hits="1" branch="false"/>
+                                <line number="82" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="62" hits="1" branch="false"/>
+                                <line number="65" hits="0" branch="false"/>
+                                <line number="74" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="77" hits="1" branch="false"/>
+                                <line number="82" hits="1" branch="false"/>
+                                <line number="85" hits="1" branch="false"/>
+                                <line number="66" hits="1" branch="false"/>
+                                <line number="78" hits="1" branch="false"/>
+                                <line number="69" hits="1" branch="false"/>
+                                <line number="81" hits="0" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="77" hits="1" branch="false"/>
+                        <line number="79" hits="1" branch="false"/>
+                        <line number="66" hits="1" branch="false"/>
+                        <line number="59" hits="1" branch="false"/>
+                        <line number="69" hits="1" branch="false"/>
+                        <line number="63" hits="1" branch="false"/>
+                        <line number="85" hits="1" branch="false"/>
+                        <line number="65" hits="0" branch="false"/>
+                        <line number="82" hits="1" branch="false"/>
+                        <line number="81" hits="0" branch="false"/>
+                        <line number="66" hits="1" branch="false"/>
+                        <line number="61" hits="1" branch="false"/>
+                        <line number="65" hits="0" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="90" hits="0" branch="false"/>
+                        <line number="82" hits="1" branch="false"/>
+                        <line number="79" hits="1" branch="false"/>
+                        <line number="85" hits="1" branch="false"/>
+                        <line number="81" hits="0" branch="false"/>
+                        <line number="65" hits="0" branch="false"/>
+                        <line number="66" hits="1" branch="false"/>
+                        <line number="89" hits="1" branch="false"/>
+                        <line number="59" hits="1" branch="false"/>
+                        <line number="79" hits="1" branch="false"/>
+                        <line number="59" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="84" hits="1" branch="false"/>
+                        <line number="77" hits="1" branch="false"/>
+                        <line number="69" hits="1" branch="false"/>
+                        <line number="79" hits="1" branch="false"/>
+                        <line number="82" hits="1" branch="false"/>
+                        <line number="85" hits="1" branch="false"/>
+                        <line number="78" hits="1" branch="false"/>
+                        <line number="75" hits="1" branch="false"/>
+                        <line number="81" hits="0" branch="false"/>
+                        <line number="69" hits="1" branch="false"/>
+                        <line number="76" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="62" hits="1" branch="false"/>
+                        <line number="65" hits="0" branch="false"/>
+                        <line number="66" hits="1" branch="false"/>
+                        <line number="82" hits="1" branch="false"/>
+                        <line number="63" hits="1" branch="false"/>
+                        <line number="58" hits="1" branch="false"/>
+                        <line number="66" hits="1" branch="false"/>
+                        <line number="69" hits="1" branch="false"/>
+                        <line number="77" hits="1" branch="false"/>
+                        <line number="65" hits="0" branch="false"/>
+                        <line number="85" hits="1" branch="false"/>
+                        <line number="76" hits="1" branch="false"/>
+                        <line number="82" hits="1" branch="false"/>
+                        <line number="65" hits="0" branch="false"/>
+                        <line number="78" hits="1" branch="false"/>
+                        <line number="63" hits="1" branch="false"/>
+                        <line number="69" hits="1" branch="false"/>
+                        <line number="77" hits="1" branch="false"/>
+                        <line number="66" hits="1" branch="false"/>
+                        <line number="85" hits="1" branch="false"/>
+                        <line number="81" hits="0" branch="false"/>
+                        <line number="90" hits="0" branch="false"/>
+                        <line number="82" hits="1" branch="false"/>
+                        <line number="59" hits="1" branch="false"/>
+                        <line number="63" hits="1" branch="false"/>
+                        <line number="79" hits="1" branch="false"/>
+                        <line number="85" hits="1" branch="false"/>
+                        <line number="90" hits="1" branch="false"/>
+                        <line number="63" hits="1" branch="false"/>
+                        <line number="77" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="81" hits="0" branch="false"/>
+                        <line number="82" hits="1" branch="false"/>
+                        <line number="66" hits="1" branch="false"/>
+                        <line number="68" hits="1" branch="false"/>
+                        <line number="65" hits="0" branch="false"/>
+                        <line number="75" hits="1" branch="false"/>
+                        <line number="77" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="62" hits="1" branch="false"/>
+                        <line number="66" hits="1" branch="false"/>
+                        <line number="69" hits="1" branch="false"/>
+                        <line number="81" hits="0" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="90" hits="0" branch="false"/>
+                        <line number="81" hits="0" branch="false"/>
+                        <line number="77" hits="1" branch="false"/>
+                        <line number="77" hits="1" branch="false"/>
+                        <line number="85" hits="1" branch="false"/>
+                        <line number="69" hits="1" branch="false"/>
+                        <line number="58" hits="1" branch="false"/>
+                        <line number="82" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="62" hits="1" branch="false"/>
+                        <line number="65" hits="0" branch="false"/>
+                        <line number="74" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="77" hits="1" branch="false"/>
+                        <line number="82" hits="1" branch="false"/>
+                        <line number="85" hits="1" branch="false"/>
+                        <line number="66" hits="1" branch="false"/>
+                        <line number="78" hits="1" branch="false"/>
+                        <line number="69" hits="1" branch="false"/>
+                        <line number="81" hits="0" branch="false"/>
+                    </lines>
+</class>
+            </classes>
+        </package>
+        <package name="com.accounts.storage" line-rate="0.98" branch-rate="1.00" complexity="0">
+            <classes>
+                <class 
+                name="com.accounts.storage.TransactionInfoDatabase" filename="com/accounts/storage/TransactionInfoDatabase.scala" line-rate="0.98" branch-rate="1.00" complexity="0">
+                    <methods>
+                        <method 
+                        name="com.accounts.storage/TransactionInfoDatabase/getBalance" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="36" hits="1" branch="false"/>
+                                <line number="36" hits="1" branch="false"/>
+                                <line number="37" hits="1" branch="false"/>
+                                <line number="35" hits="1" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.storage/TransactionInfoDatabase/&lt;none&gt;" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="16" hits="1" branch="false"/>
+                                <line number="14" hits="1" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.storage/TransactionInfoDatabase/getAccountDetailsWithTransactions" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="27" hits="1" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.storage/TransactionInfoDatabase/checkAccountNoExist" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="31" hits="1" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.storage/TransactionInfoDatabase/createTransaction" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="61" hits="1" branch="false"/>
+                                <line number="44" hits="1" branch="false"/>
+                                <line number="51" hits="1" branch="false"/>
+                                <line number="70" hits="1" branch="false"/>
+                                <line number="62" hits="1" branch="false"/>
+                                <line number="53" hits="1" branch="false"/>
+                                <line number="46" hits="1" branch="false"/>
+                                <line number="70" hits="1" branch="false"/>
+                                <line number="60" hits="1" branch="false"/>
+                                <line number="41" hits="1" branch="false"/>
+                                <line number="50" hits="1" branch="false"/>
+                                <line number="65" hits="1" branch="false"/>
+                                <line number="59" hits="1" branch="false"/>
+                                <line number="65" hits="1" branch="false"/>
+                                <line number="69" hits="1" branch="false"/>
+                                <line number="51" hits="1" branch="false"/>
+                                <line number="61" hits="1" branch="false"/>
+                                <line number="43" hits="1" branch="false"/>
+                                <line number="62" hits="1" branch="false"/>
+                                <line number="45" hits="1" branch="false"/>
+                                <line number="52" hits="1" branch="false"/>
+                                <line number="70" hits="1" branch="false"/>
+                                <line number="41" hits="1" branch="false"/>
+                                <line number="49" hits="1" branch="false"/>
+                                <line number="40" hits="1" branch="false"/>
+                                <line number="62" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="60" hits="1" branch="false"/>
+                                <line number="43" hits="1" branch="false"/>
+                                <line number="67" hits="1" branch="false"/>
+                                <line number="51" hits="1" branch="false"/>
+                                <line number="70" hits="1" branch="false"/>
+                                <line number="45" hits="1" branch="false"/>
+                                <line number="52" hits="1" branch="false"/>
+                                <line number="61" hits="1" branch="false"/>
+                            </lines>
+</method>
+                        <method 
+                        name="com.accounts.storage/TransactionInfoDatabase/getTransactionId" signature="()V" line-rate="0.86" branch-rate="1.00" complexity="0">
+                            <lines>
+                                <line number="20" hits="1" branch="false"/>
+                                <line number="23" hits="1" branch="false"/>
+                                <line number="19" hits="1" branch="false"/>
+                                <line number="21" hits="0" branch="false"/>
+                                <line number="20" hits="1" branch="false"/>
+                                <line number="24" hits="1" branch="false"/>
+                                <line number="18" hits="1" branch="false"/>
+                            </lines>
+</method>
+                    </methods>
+                    <lines>
+                        <line number="61" hits="1" branch="false"/>
+                        <line number="44" hits="1" branch="false"/>
+                        <line number="51" hits="1" branch="false"/>
+                        <line number="70" hits="1" branch="false"/>
+                        <line number="62" hits="1" branch="false"/>
+                        <line number="53" hits="1" branch="false"/>
+                        <line number="46" hits="1" branch="false"/>
+                        <line number="70" hits="1" branch="false"/>
+                        <line number="20" hits="1" branch="false"/>
+                        <line number="36" hits="1" branch="false"/>
+                        <line number="60" hits="1" branch="false"/>
+                        <line number="41" hits="1" branch="false"/>
+                        <line number="50" hits="1" branch="false"/>
+                        <line number="23" hits="1" branch="false"/>
+                        <line number="65" hits="1" branch="false"/>
+                        <line number="31" hits="1" branch="false"/>
+                        <line number="16" hits="1" branch="false"/>
+                        <line number="59" hits="1" branch="false"/>
+                        <line number="65" hits="1" branch="false"/>
+                        <line number="69" hits="1" branch="false"/>
+                        <line number="51" hits="1" branch="false"/>
+                        <line number="61" hits="1" branch="false"/>
+                        <line number="27" hits="1" branch="false"/>
+                        <line number="43" hits="1" branch="false"/>
+                        <line number="14" hits="1" branch="false"/>
+                        <line number="62" hits="1" branch="false"/>
+                        <line number="45" hits="1" branch="false"/>
+                        <line number="52" hits="1" branch="false"/>
+                        <line number="19" hits="1" branch="false"/>
+                        <line number="36" hits="1" branch="false"/>
+                        <line number="70" hits="1" branch="false"/>
+                        <line number="41" hits="1" branch="false"/>
+                        <line number="49" hits="1" branch="false"/>
+                        <line number="21" hits="0" branch="false"/>
+                        <line number="20" hits="1" branch="false"/>
+                        <line number="40" hits="1" branch="false"/>
+                        <line number="62" hits="1" branch="false"/>
+                        <line number="37" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="60" hits="1" branch="false"/>
+                        <line number="24" hits="1" branch="false"/>
+                        <line number="43" hits="1" branch="false"/>
+                        <line number="67" hits="1" branch="false"/>
+                        <line number="51" hits="1" branch="false"/>
+                        <line number="70" hits="1" branch="false"/>
+                        <line number="18" hits="1" branch="false"/>
+                        <line number="45" hits="1" branch="false"/>
+                        <line number="52" hits="1" branch="false"/>
+                        <line number="35" hits="1" branch="false"/>
+                        <line number="61" hits="1" branch="false"/>
+                    </lines>
+</class>
+            </classes>
+        </package>
+    </packages>
+</coverage>
